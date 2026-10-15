@@ -31,6 +31,7 @@
       <button id="login" type="button" hidden>เข้าสู่ระบบด้วย LINE</button>
       <button id="retry" type="button" class="secondary" hidden>ลองเชื่อมต่อใหม่</button>
       <button id="logout" type="button" class="secondary" hidden>ออกจาก LINE</button>
+      <button id="diagnose" type="button" class="secondary">ตรวจการเชื่อมต่อ</button>
     </div>
     <small>หน้านี้ใช้ตรวจการเข้าสู่ระบบเท่านั้น ยังไม่เปิดการบันทึกงานหรือข้อมูลจริงจากชีตอื่น</small>
   </main>
@@ -65,7 +66,7 @@
         const requestId=nonce();
         const frame=document.createElement('iframe');
         frame.title='บริการตรวจสิทธิ์ PWA ทดสอบ';
-        frame.hidden=true;
+        frame.style.cssText='position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0';
         frame.referrerPolicy='no-referrer';
         currentFrame?.remove();
         currentFrame=frame;
@@ -140,6 +141,17 @@
       liff.login({redirectUri:location.origin+location.pathname});
     });
     el('retry').addEventListener('click',start);
+    el('diagnose').addEventListener('click',async () => {
+      setStatus('กำลังตรวจ Web App ทดสอบ…');
+      try {
+        await verifyWithCopy('diagnostic');
+        setStatus('Web App ตอบกลับแล้ว');
+      } catch(error) {
+        const message=String(error?.message||'');
+        if (message.includes('LINE ID token')) setStatus('Web App ตอบกลับแล้ว · ยังไม่ได้ส่งตัวตน LINE');
+        else setStatus(message||'Web App ยังไม่ตอบกลับ',true);
+      }
+    });
     el('logout').addEventListener('click',() => {
       currentFrame?.remove();
       liff.logout();
