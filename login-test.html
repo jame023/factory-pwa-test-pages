@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>เข้าสู่ระบบทดสอบ · ระบบโรงงาน SIP</title>
+  <style>
+    :root{font-family:system-ui,"Noto Sans Thai",sans-serif;color:#15364a;background:#eff5f7}
+    *{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;padding:20px}
+    main{width:min(100%,520px);background:#fff;border:1px solid #d7e4e9;border-radius:24px;padding:clamp(24px,6vw,40px);box-shadow:0 18px 50px #173d5614}
+    .eyebrow{font-size:14px;font-weight:700;letter-spacing:.06em;color:#087b81}h1{font-size:clamp(26px,5vw,34px);line-height:1.3;margin:8px 0}
+    p{line-height:1.65;font-size:17px;margin:8px 0 18px}.muted{color:#59717d}.status{padding:14px 16px;border-radius:14px;background:#eaf5f7;border-left:4px solid #008b9b}
+    .status.error{background:#fff0ef;border-color:#c53b33;color:#9e302b}.profile{margin-top:18px;padding:18px;border-radius:16px;background:#f4f8fa}
+    dl{display:grid;grid-template-columns:110px 1fr;gap:10px;margin:0;font-size:17px}dt{color:#5b707b}dd{margin:0;font-weight:650;overflow-wrap:anywhere}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}button{font:inherit;font-weight:700;padding:12px 20px;border:0;border-radius:12px;background:#006b79;color:#fff;cursor:pointer}
+    button.secondary{background:#e8f1f3;color:#164453}button:disabled{opacity:.55;cursor:wait}small{display:block;color:#677e89;line-height:1.6;margin-top:20px}
+    [hidden]{display:none!important}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">SIP · พื้นที่ทดสอบ</div>
+    <h1>เข้าสู่ระบบด้วย LINE</h1>
+    <p class="muted">ตรวจชื่อและสิทธิ์จากสำเนาชีต Employee Access สำหรับ PWA ทดสอบ</p>
+    <div id="status" class="status" role="status" aria-live="polite">กำลังเชื่อมต่อ LINE…</div>
+    <section id="profile" class="profile" aria-label="ข้อมูลบัญชีที่ยืนยันแล้ว" hidden>
+      <dl><dt>ชื่อ</dt><dd id="name"></dd><dt>สิทธิ์</dt><dd id="role"></dd><dt>กลุ่มงาน</dt><dd id="groups"></dd></dl>
+    </section>
+    <div class="actions">
+      <button id="login" type="button" hidden>เข้าสู่ระบบด้วย LINE</button>
+      <button id="retry" type="button" class="secondary" hidden>ลองเชื่อมต่อใหม่</button>
+      <button id="logout" type="button" class="secondary" hidden>ออกจาก LINE</button>
+    </div>
+    <small>หน้านี้ใช้ตรวจการเข้าสู่ระบบเท่านั้น ยังไม่เปิดการบันทึกงานหรือข้อมูลจริงจากชีตอื่น</small>
+  </main>
+  <script src="https://static.line-scdn.net/liff/edge/versions/2.31.1/sdk.js"></script>
+  <script>
+    'use strict';
+    const LIFF_ID = '2010715544-GiFWLPaD';
+    const BRIDGE_URL = 'https://script.google.com/macros/s/AKfycbx8t30jZWovGkBjik3FELbTzIvjjkXb1Eq_KsB-hrxF1iFozVxqA1jHuYzdKRzUvgYB/exec';
+    const REQUEST_SOURCE = 'factory-pwa-test-client-v1';
+    const RESPONSE_SOURCE = 'factory-pwa-test-bridge-v1';
+    const el = id => document.getElementById(id);
+    const roleLabel = {employee:'พนักงาน',executive:'ผู้บริหาร',admin:'Admin'};
+    let currentFrame;
+    function setStatus(message, error=false) {
+      el('status').textContent=message;
+      el('status').classList.toggle('error',error);
+    }
+    function nonce() {
+      const bytes = new Uint8Array(24);
+      crypto.getRandomValues(bytes);
+      return Array.from(bytes, byte => byte.toString(16).padStart(2,'0')).join('');
+    }
+    function isScriptOrigin(origin) {
+      try {
+        const url=new URL(origin);
+        return url.protocol==='https:' && /^[a-z0-9-]+-script\.googleusercontent\.com$/.test(url.hostname);
+      } catch (_) { return false; }
+    }
+    function verifyWithCopy(idToken) {
+      return new Promise((resolve,reject) => {
+        const requestNonce=nonce();
+        const requestId=nonce();
+        const frame=document.createElement('iframe');
+        frame.title='บริการตรวจสิทธิ์ PWA ทดสอบ';
+        frame.hidden=true;
+        frame.referrerPolicy='no-referrer';
+        currentFrame?.remove();
+        currentFrame=frame;
+        let bridgeSource, bridgeOrigin, settled=false;
+        const finish=(error,result) => {
+          if (settled) return;
+          settled=true;
+          clearTimeout(timer);
+          window.removeEventListener('message',onMessage);
+          frame.remove();
+          if (currentFrame===frame) currentFrame=null;
+          error ? reject(error) : resolve(result);
+        };
+        const timer=setTimeout(() => finish(new Error('ระบบตรวจสิทธิ์ตอบกลับช้า กรุณาลองใหม่')),45000);
+        const onMessage=event => {
+          const data=event.data;
+          if (!isScriptOrigin(event.origin) || !data || data.source!==RESPONSE_SOURCE ||
+              data.nonce!==requestNonce) return;
+          if (data.type==='ready' && !bridgeSource) {
+            bridgeSource=event.source;
+            bridgeOrigin=event.origin;
+            bridgeSource.postMessage({source:REQUEST_SOURCE,nonce:requestNonce,id:requestId,
+              action:'session',idToken},bridgeOrigin);
+            return;
+          }
+          if (event.source!==bridgeSource || event.origin!==bridgeOrigin || data.id!==requestId) return;
+          if (data.ok!==true) finish(new Error(String(data.error||'ตรวจสิทธิ์ไม่สำเร็จ')));
+          else finish(null,data.result);
+        };
+        window.addEventListener('message',onMessage);
+        const url=new URL(BRIDGE_URL);
+        url.searchParams.set('nonce',requestNonce);
+        frame.src=url.href;
+        document.body.append(frame);
+      });
+    }
+    async function start() {
+      el('profile').hidden=true;
+      el('retry').hidden=true;
+      el('login').hidden=true;
+      el('logout').hidden=true;
+      setStatus('กำลังยืนยันตัวตนกับ LINE…');
+      try {
+        if (!window.liff) throw new Error('โหลด LINE Login ไม่สำเร็จ');
+        await liff.init({liffId:LIFF_ID});
+        if (!liff.isLoggedIn()) {
+          setStatus('กรุณาเข้าสู่ระบบด้วย LINE');
+          el('login').hidden=false;
+          return;
+        }
+        const idToken=liff.getIDToken();
+        if (typeof idToken!=='string' || !idToken) throw new Error('LINE ไม่ส่งข้อมูลยืนยันตัวตน กรุณาเข้าสู่ระบบใหม่');
+        setStatus('กำลังตรวจสิทธิ์จากสำเนาชีต…');
+        const result=await verifyWithCopy(idToken);
+        const user=result?.ok===true ? result.data?.user : null;
+        if (!user || !user.active || !roleLabel[user.role] || typeof user.name!=='string') {
+          throw new Error('ผลตรวจสิทธิ์ไม่ถูกต้อง');
+        }
+        el('name').textContent=user.name;
+        el('role').textContent=roleLabel[user.role];
+        el('groups').textContent=Array.isArray(user.groups)&&user.groups.length ? user.groups.join(' · ') : 'ไม่มีการระบุกลุ่มงาน';
+        el('profile').hidden=false;
+        el('logout').hidden=false;
+        setStatus('ยืนยันตัวตนและสิทธิ์จากสำเนาชีตสำเร็จ');
+      } catch (error) {
+        setStatus(error?.message||'เชื่อมต่อไม่สำเร็จ',true);
+        el('retry').hidden=false;
+        if (window.liff?.isLoggedIn?.()) el('logout').hidden=false;
+      }
+    }
+    el('login').addEventListener('click',() => {
+      liff.login({redirectUri:location.origin+location.pathname});
+    });
+    el('retry').addEventListener('click',start);
+    el('logout').addEventListener('click',() => {
+      currentFrame?.remove();
+      liff.logout();
+      el('profile').hidden=true;
+      el('logout').hidden=true;
+      el('login').hidden=false;
+      setStatus('ออกจาก LINE แล้ว');
+    });
+    start();
+  </script>
+</body>
+</html>
+
