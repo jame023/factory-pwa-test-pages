@@ -34,22 +34,11 @@
     <section id="profile" class="profile" aria-label="ข้อมูลบัญชีที่ยืนยันแล้ว" hidden>
       <dl><dt>ชื่อ</dt><dd id="name"></dd><dt>สิทธิ์</dt><dd id="role"></dd><dt>กลุ่มงานหลัก</dt><dd id="primaryGroup"></dd><dt>สิทธิ์กลุ่มงาน</dt><dd id="groups"></dd></dl>
     </section>
-    <section id="attendance" class="attendance" aria-label="ข้อมูลเวลาเข้าออกของฉัน" hidden>
-      <div class="attendance-head"><div><div class="eyebrow">เวลาเข้าออก</div><h2>ข้อมูลของฉัน</h2></div><label class="month-field">เลือกเดือน<input id="attendanceMonth" type="month"></label></div>
-      <div id="attendanceStatus" class="attendance-status" role="status" aria-live="polite">กำลังอ่านข้อมูล…</div>
-      <div id="attendanceContent" hidden>
-        <article class="today-card"><h3 id="attendanceDate">ข้อมูลวันที่</h3><div class="today-times"><div><span>เวลาเข้า</span><strong id="checkIn">—</strong></div><div><span>เวลาออก</span><strong id="checkOut">—</strong></div></div><p id="todayDetails" class="muted"></p></article>
-        <div class="summary-grid" aria-label="สรุปเดือนที่เลือก">
-          <div class="summary-card"><span>มาทำงาน</span><strong id="attendanceDays">0 วัน</strong></div><div class="summary-card"><span>วันลา</span><strong id="leaveDays">0 วัน</strong></div><div class="summary-card"><span>ขาดงาน</span><strong id="absentDays">0 วัน</strong></div>
-          <div class="summary-card"><span>มาสายรวม</span><strong id="lateMinutes">0 นาที</strong></div><div class="summary-card"><span>ออกก่อนรวม</span><strong id="earlyMinutes">0 นาที</strong></div><div class="summary-card"><span>OT รวม</span><strong id="otMinutes">0 นาที</strong></div>
-        </div>
-        <div class="history"><h3 id="historyHeading">ประวัติเดือนที่เลือก</h3><div id="historyList" class="history-list"></div></div>
-      </div>
-    </section>
     <div class="actions">
       <button id="login" type="button" hidden>เข้าสู่ระบบด้วย LINE</button>
       <button id="retry" type="button" class="secondary" hidden>ลองเชื่อมต่อใหม่</button>
       <button id="logout" type="button" class="secondary" hidden>ออกจาก LINE</button>
+      <button id="goEmployee" type="button" hidden>ไปที่หน้าพนักงาน</button>
       <button id="diagnose" type="button" class="secondary">ตรวจการเชื่อมต่อ</button>
     </div>
     <small>หน้าทดสอบอ่านข้อมูลจากสำเนาชีตเท่านั้น • จำสถานะบนเครื่องนี้ 24 ชั่วโมงโดยไม่เก็บ LINE ID Token • ไม่แก้ไขเวลาเข้าออกและไม่เขียนข้อมูลกลับชีต</small>
@@ -224,7 +213,6 @@
     }
     async function start() {
       el('profile').hidden=true;
-      el('attendance').hidden=true;
       el('retry').hidden=true;
       el('login').hidden=true;
       el('logout').hidden=true;
@@ -254,11 +242,10 @@
         cacheSession(user);
         renderProfile(user);
         setStatus('ยืนยันตัวตนและสิทธิ์จากสำเนาชีตสำเร็จ');
-        window.setTimeout(goToApp, 80);
+        el('goEmployee').hidden=false;
       } catch (error) {
         clearCachedSession();
         el('profile').hidden=true;
-        el('attendance').hidden=true;
         setStatus(error?.message||'เชื่อมต่อไม่สำเร็จ',true);
         el('retry').hidden=false;
         if (window.liff?.isLoggedIn?.()) el('logout').hidden=false;
@@ -268,7 +255,7 @@
       liff.login({redirectUri:LIFF_REDIRECT_URI});
     });
     el('retry').addEventListener('click',start);
-    el('attendanceMonth').addEventListener('change',loadAttendance);
+    el('goEmployee').addEventListener('click',goToApp);
     el('diagnose').addEventListener('click',async () => {
       setStatus('กำลังตรวจ Web App ทดสอบ…');
       try {
@@ -286,8 +273,8 @@
       clearCachedSession();
       liff.logout();
       el('profile').hidden=true;
-      el('attendance').hidden=true;
       el('logout').hidden=true;
+      el('goEmployee').hidden=true;
       el('login').hidden=false;
       setStatus('ออกจาก LINE แล้ว');
     });
