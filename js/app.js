@@ -18,6 +18,7 @@ const headerRoot = document.getElementById("header-root");
 const navRoot = document.getElementById("nav-root");
 const pageRoot = document.getElementById("page-root");
 const loadingRoot = document.getElementById("page-loading");
+const LINE_LOGIN_URL = "https://jame023.github.io/factory-pwa-test-pages/login-test.html";
 
 function renderChrome(route = currentRoute()) {
   headerRoot.innerHTML = renderAppHeader(session.user);
@@ -37,8 +38,12 @@ async function login(event) {
   const button = event.currentTarget;
   if (button.disabled) return;
   button.disabled = true;
-  button.textContent = APP_MODE === "mock" ? "กำลังเปิดบัญชีตัวอย่าง…" : "กำลังยืนยันตัวตน…";
-  showActionPopup(APP_MODE === "mock" ? "กำลังเปิดบัญชีตัวอย่าง…" : "กำลังยืนยันตัวตนกับ LINE…");
+  button.textContent = "กำลังยืนยันตัวตนกับ LINE…";
+  showActionPopup("กำลังยืนยันตัวตนกับ LINE…");
+  if (APP_MODE === "mock") {
+    location.href = LINE_LOGIN_URL;
+    return;
+  }
   try {
     session = await authProvider.login();
     if (!session) return; // LIFF may redirect the browser to LINE Login.
@@ -113,6 +118,7 @@ async function start() {
   }
 }
 start();
+
 
 
 
