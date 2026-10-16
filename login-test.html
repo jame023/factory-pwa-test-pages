@@ -8,13 +8,20 @@
   <style>
     :root{font-family:system-ui,"Noto Sans Thai",sans-serif;color:#15364a;background:#eff5f7}
     *{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;padding:20px}
-    main{width:min(100%,520px);background:#fff;border:1px solid #d7e4e9;border-radius:24px;padding:clamp(24px,6vw,40px);box-shadow:0 18px 50px #173d5614}
+    main{width:min(100%,880px);background:#fff;border:1px solid #d7e4e9;border-radius:24px;padding:clamp(24px,6vw,40px);box-shadow:0 18px 50px #173d5614}
     .eyebrow{font-size:14px;font-weight:700;letter-spacing:.06em;color:#087b81}h1{font-size:clamp(26px,5vw,34px);line-height:1.3;margin:8px 0}
     p{line-height:1.65;font-size:17px;margin:8px 0 18px}.muted{color:#59717d}.status{padding:14px 16px;border-radius:14px;background:#eaf5f7;border-left:4px solid #008b9b}
     .status.error{background:#fff0ef;border-color:#c53b33;color:#9e302b}.profile{margin-top:18px;padding:18px;border-radius:16px;background:#f4f8fa}
     dl{display:grid;grid-template-columns:110px 1fr;gap:10px;margin:0;font-size:17px}dt{color:#5b707b}dd{margin:0;font-weight:650;overflow-wrap:anywhere}
     .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}button{font:inherit;font-weight:700;padding:12px 20px;border:0;border-radius:12px;background:#006b79;color:#fff;cursor:pointer}
     button.secondary{background:#e8f1f3;color:#164453}button:disabled{opacity:.55;cursor:wait}small{display:block;color:#677e89;line-height:1.6;margin-top:20px}
+    .attendance{margin-top:28px;border-top:1px solid #dce8ec;padding-top:24px}.attendance-head{display:flex;justify-content:space-between;align-items:end;gap:18px;flex-wrap:wrap}
+    .attendance h2{font-size:25px;margin:0}.month-field{display:grid;gap:6px;font-weight:700}.month-field input{font:inherit;padding:10px 12px;border:1px solid #bfd2da;border-radius:11px;color:#15364a;background:#fff}
+    .attendance-status{margin:18px 0;padding:12px 14px;border-radius:12px;background:#edf6f8;color:#285465}.attendance-status.error{background:#fff0ef;color:#9e302b}
+    .summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.summary-card{padding:14px;border-radius:14px;background:#f2f7f9}.summary-card span{display:block;color:#5b707b;font-size:14px}.summary-card strong{display:block;margin-top:4px;font-size:21px}
+    .today-card{margin-top:16px;padding:18px;border-radius:16px;background:#eaf5f7}.today-card h3,.history h3{margin:0 0 10px}.today-times{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.today-times div{padding:12px;border-radius:12px;background:#fff}.today-times span{display:block;color:#5b707b}.today-times strong{font-size:22px}
+    .history{margin-top:18px}.history-list{display:grid;gap:10px}.history-row{display:grid;grid-template-columns:minmax(110px,1fr) minmax(140px,1.4fr) auto;align-items:center;gap:12px;padding:13px 14px;border:1px solid #dce8ec;border-radius:13px}.history-row span{color:#5b707b}.history-row strong{white-space:nowrap}.badge{display:inline-flex;padding:5px 9px;border-radius:999px;background:#e8f1f3;font-size:14px;font-weight:700}.empty{padding:18px;text-align:center;color:#677e89;background:#f5f8f9;border-radius:13px}
+    @media(max-width:640px){.summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.history-row{grid-template-columns:1fr auto}.history-row span{grid-column:1/-1}.today-times{grid-template-columns:1fr}}
     [hidden]{display:none!important}
   </style>
 </head>
@@ -25,7 +32,19 @@
     <p class="muted">ตรวจชื่อและสิทธิ์จากสำเนาชีต Employee Access สำหรับ PWA ทดสอบ</p>
     <div id="status" class="status" role="status" aria-live="polite">กำลังเชื่อมต่อ LINE…</div>
     <section id="profile" class="profile" aria-label="ข้อมูลบัญชีที่ยืนยันแล้ว" hidden>
-      <dl><dt>ชื่อ</dt><dd id="name"></dd><dt>สิทธิ์</dt><dd id="role"></dd><dt>กลุ่มงาน</dt><dd id="groups"></dd></dl>
+      <dl><dt>ชื่อ</dt><dd id="name"></dd><dt>สิทธิ์</dt><dd id="role"></dd><dt>กลุ่มงานหลัก</dt><dd id="primaryGroup"></dd><dt>สิทธิ์กลุ่มงาน</dt><dd id="groups"></dd></dl>
+    </section>
+    <section id="attendance" class="attendance" aria-label="ข้อมูลเวลาเข้าออกของฉัน" hidden>
+      <div class="attendance-head"><div><div class="eyebrow">เวลาเข้าออก</div><h2>ข้อมูลของฉัน</h2></div><label class="month-field">เลือกเดือน<input id="attendanceMonth" type="month"></label></div>
+      <div id="attendanceStatus" class="attendance-status" role="status" aria-live="polite">กำลังอ่านข้อมูล…</div>
+      <div id="attendanceContent" hidden>
+        <article class="today-card"><h3 id="attendanceDate">ข้อมูลวันที่</h3><div class="today-times"><div><span>เวลาเข้า</span><strong id="checkIn">—</strong></div><div><span>เวลาออก</span><strong id="checkOut">—</strong></div></div><p id="todayDetails" class="muted"></p></article>
+        <div class="summary-grid" aria-label="สรุปเดือนที่เลือก">
+          <div class="summary-card"><span>มาทำงาน</span><strong id="attendanceDays">0 วัน</strong></div><div class="summary-card"><span>วันลา</span><strong id="leaveDays">0 วัน</strong></div><div class="summary-card"><span>ขาดงาน</span><strong id="absentDays">0 วัน</strong></div>
+          <div class="summary-card"><span>มาสายรวม</span><strong id="lateMinutes">0 นาที</strong></div><div class="summary-card"><span>ออกก่อนรวม</span><strong id="earlyMinutes">0 นาที</strong></div><div class="summary-card"><span>OT รวม</span><strong id="otMinutes">0 นาที</strong></div>
+        </div>
+        <div class="history"><h3 id="historyHeading">ประวัติเดือนที่เลือก</h3><div id="historyList" class="history-list"></div></div>
+      </div>
     </section>
     <div class="actions">
       <button id="login" type="button" hidden>เข้าสู่ระบบด้วย LINE</button>
@@ -33,18 +52,53 @@
       <button id="logout" type="button" class="secondary" hidden>ออกจาก LINE</button>
       <button id="diagnose" type="button" class="secondary">ตรวจการเชื่อมต่อ</button>
     </div>
-    <small>หน้านี้ใช้ตรวจการเข้าสู่ระบบเท่านั้น ยังไม่เปิดการบันทึกงานหรือข้อมูลจริงจากชีตอื่น</small>
+    <small>หน้าทดสอบอ่านข้อมูลจากสำเนาชีตเท่านั้น • จำสถานะบนเครื่องนี้ 24 ชั่วโมงโดยไม่เก็บ LINE ID Token • ไม่แก้ไขเวลาเข้าออกและไม่เขียนข้อมูลกลับชีต</small>
   </main>
   <script src="https://static.line-scdn.net/liff/edge/versions/2.31.1/sdk.js"></script>
   <script>
     'use strict';
     const LIFF_ID = '2010715544-GiFWLPaD';
+    const LIFF_REDIRECT_URI = 'https://jame023.github.io/factory-pwa-test-pages/login-test.html';
     const BRIDGE_URL = 'https://script.google.com/macros/s/AKfycbx8t30jZWovGkBjik3FELbTzIvjjkXb1Eq_KsB-hrxF1iFozVxqA1jHuYzdKRzUvgYB/exec';
     const REQUEST_SOURCE = 'factory-pwa-test-client-v1';
     const RESPONSE_SOURCE = 'factory-pwa-test-bridge-v1';
+    const SESSION_CACHE_KEY = 'factory-pwa-test-session-v1';
+    const SESSION_CACHE_TTL_MS = 24*60*60*1000;
     const el = id => document.getElementById(id);
     const roleLabel = {employee:'พนักงาน',executive:'ผู้บริหาร',admin:'Admin'};
+    const attendanceLabel = {'present-full':'เต็มวัน','present-half':'ครึ่งวัน','in-progress':'กำลังทำงาน',leave:'ลา',absent:'ขาดงาน',holiday:'หยุด',scheduled:'รอตามปฏิทิน',unrecorded:'ยังไม่มีข้อมูล'};
     let currentFrame;
+    let currentIdToken='';
+    function readCachedSession() {
+      try {
+        const cached=JSON.parse(localStorage.getItem(SESSION_CACHE_KEY)||'null');
+        const user=cached?.user;
+        if (!cached || cached.version!==1 || !Number.isFinite(cached.expiresAt) || cached.expiresAt<=Date.now() ||
+            !user || user.active!==true || !roleLabel[user.role] || typeof user.name!=='string') return null;
+        return user;
+      } catch (_) { return null; }
+    }
+    function cacheSession(user) {
+      try {
+        localStorage.setItem(SESSION_CACHE_KEY,JSON.stringify({version:1,cachedAt:Date.now(),expiresAt:Date.now()+SESSION_CACHE_TTL_MS,user}));
+      } catch (_) {}
+    }
+    function clearCachedSession() {
+      try { localStorage.removeItem(SESSION_CACHE_KEY); } catch (_) {}
+    }
+    function renderProfile(user) {
+      el('name').textContent=user.name;
+      el('role').textContent=roleLabel[user.role];
+      el('primaryGroup').textContent=user.primaryGroup || 'ไม่ได้ระบุ';
+      const groups=Array.isArray(user.accessGroups)&&user.accessGroups.length ? user.accessGroups : user.groups;
+      el('groups').textContent=Array.isArray(groups)&&groups.length ? groups.join(' · ') : 'ไม่มีการระบุกลุ่มงาน';
+      el('profile').hidden=false;
+      el('logout').hidden=false;
+    }
+    function clearLiffCallbackUrl() {
+      if (!/[?&](?:code|state|liffClientId|liffRedirectUri)=/.test(location.search)) return;
+      history.replaceState(null,document.title,location.origin+location.pathname);
+    }
     function setStatus(message, error=false) {
       el('status').textContent=message;
       el('status').classList.toggle('error',error);
@@ -60,7 +114,7 @@
         return url.protocol==='https:' && /^[a-z0-9-]+-script\.googleusercontent\.com$/.test(url.hostname);
       } catch (_) { return false; }
     }
-    function verifyWithCopy(idToken) {
+    function requestBridge(action,idToken,payload) {
       return new Promise((resolve,reject) => {
         const requestNonce=nonce();
         const requestId=nonce();
@@ -89,7 +143,7 @@
             bridgeSource=event.source;
             bridgeOrigin=event.origin;
             bridgeSource.postMessage({source:REQUEST_SOURCE,nonce:requestNonce,id:requestId,
-              action:'session',idToken},bridgeOrigin);
+              action,idToken,payload},bridgeOrigin);
             return;
           }
           if (event.source!==bridgeSource || event.origin!==bridgeOrigin || data.id!==requestId) return;
@@ -103,8 +157,69 @@
         document.body.append(frame);
       });
     }
+    const verifyWithCopy=idToken => requestBridge('session',idToken);
+    const numberText=value => Number(value||0).toLocaleString('th-TH',{maximumFractionDigits:1});
+    const durationText=value => {
+      const minutes=Number(value||0);
+      if (!minutes) return '0 นาที';
+      const hours=Math.floor(minutes/60),rest=minutes%60;
+      return hours ? hours+' ชม.'+(rest?' '+rest+' นาที':'') : rest+' นาที';
+    };
+    const thaiDate=value => {
+      const match=String(value||'').match(/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/);
+      if (!match) return '—';
+      return new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Bangkok'}).format(new Date(Date.UTC(Number(match[1]),Number(match[2])-1,Number(match[3]))));
+    };
+    const bangkokMonth=() => {
+      const parts=Object.fromEntries(new Intl.DateTimeFormat('en',{year:'numeric',month:'2-digit',timeZone:'Asia/Bangkok'}).formatToParts(new Date()).map(part=>[part.type,part.value]));
+      return parts.year+'-'+parts.month;
+    };
+    async function loadAttendance() {
+      if (!currentIdToken) return;
+      const month=el('attendanceMonth').value;
+      el('attendance').hidden=false;
+      el('attendanceContent').hidden=true;
+      el('attendanceStatus').classList.remove('error');
+      el('attendanceStatus').textContent='กำลังอ่านเวลาเข้าออกจากสำเนาชีต…';
+      try {
+        const result=await requestBridge('attendance',currentIdToken,{month,period:'all'});
+        const data=result?.ok===true ? result.data : null;
+        if (!data || data.month!==month || !Array.isArray(data.history) || !data.summary) throw new Error('ผลข้อมูลเวลาเข้าออกไม่ถูกต้อง');
+        el('attendanceDate').textContent='ข้อมูลวันที่ '+thaiDate(data.date)+' • '+(attendanceLabel[data.workdayStatus]||'ไม่ระบุสถานะ');
+        el('checkIn').textContent=data.checkIn||'—';
+        el('checkOut').textContent=data.checkOut||'—';
+        el('todayDetails').textContent='มาสาย '+durationText(data.lateMinutes)+' • ออกก่อน '+durationText(data.earlyLeaveMinutes)+' • OT '+durationText(data.overtimeMinutes);
+        el('attendanceDays').textContent=numberText(data.summary.attendanceDays)+' วัน';
+        el('leaveDays').textContent=numberText(data.summary.leaveDays)+' วัน';
+        el('absentDays').textContent=numberText(data.summary.absentDays)+' วัน';
+        el('lateMinutes').textContent=durationText(data.summary.lateMinutes);
+        el('earlyMinutes').textContent=durationText(data.summary.earlyLeaveMinutes);
+        el('otMinutes').textContent=durationText(data.summary.overtimeMinutes);
+        const firstHalf=Number(new Intl.DateTimeFormat('en-CA',{day:'2-digit',timeZone:'Asia/Bangkok'}).format(new Date()))<=15;
+        const lastDay=new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5,7)),0)).getUTCDate();
+        const visible=data.history.filter(row => firstHalf ? Number(row.date.slice(8,10))<=15 : Number(row.date.slice(8,10))>=16);
+        el('historyHeading').textContent='ประวัติวันที่ '+(firstHalf?'1–15':'16–'+lastDay);
+        const list=el('historyList');
+        list.replaceChildren();
+        if (!visible.length) {
+          const empty=document.createElement('p'); empty.className='empty'; empty.textContent='ยังไม่มีข้อมูลในช่วงนี้'; list.append(empty);
+        } else visible.forEach(row => {
+          const article=document.createElement('article'); article.className='history-row';
+          const date=document.createElement('strong'); date.textContent=thaiDate(row.date);
+          const times=document.createElement('span'); times.textContent='เข้า '+(row.checkIn||'—')+' • ออก '+(row.checkOut||'—')+' • OT '+durationText(row.overtimeMinutes);
+          const status=document.createElement('b'); status.className='badge'; status.textContent=attendanceLabel[row.status]||'ไม่ระบุ';
+          article.append(date,times,status); list.append(article);
+        });
+        el('attendanceContent').hidden=false;
+        el('attendanceStatus').textContent='อ่านข้อมูลของฉันจากสำเนาชีตสำเร็จ';
+      } catch(error) {
+        el('attendanceStatus').classList.add('error');
+        el('attendanceStatus').textContent=error?.message||'อ่านข้อมูลเวลาเข้าออกไม่สำเร็จ';
+      }
+    }
     async function start() {
       el('profile').hidden=true;
+      el('attendance').hidden=true;
       el('retry').hidden=true;
       el('login').hidden=true;
       el('logout').hidden=true;
@@ -112,6 +227,7 @@
       try {
         if (!window.liff) throw new Error('โหลด LINE Login ไม่สำเร็จ');
         await liff.init({liffId:LIFF_ID});
+        clearLiffCallbackUrl();
         if (!liff.isLoggedIn()) {
           setStatus('กรุณาเข้าสู่ระบบด้วย LINE');
           el('login').hidden=false;
@@ -119,28 +235,36 @@
         }
         const idToken=liff.getIDToken();
         if (typeof idToken!=='string' || !idToken) throw new Error('LINE ไม่ส่งข้อมูลยืนยันตัวตน กรุณาเข้าสู่ระบบใหม่');
-        setStatus('กำลังตรวจสิทธิ์จากสำเนาชีต…');
+        currentIdToken=idToken;
+        const cachedUser=readCachedSession();
+        if (cachedUser) {
+          renderProfile(cachedUser);
+          setStatus('จำการยืนยันบนเครื่องนี้แล้ว · กำลังตรวจสิทธิ์ล่าสุด…');
+        } else setStatus('กำลังตรวจสิทธิ์จากสำเนาชีต…');
         const result=await verifyWithCopy(idToken);
         const user=result?.ok===true ? result.data?.user : null;
         if (!user || !user.active || !roleLabel[user.role] || typeof user.name!=='string') {
           throw new Error('ผลตรวจสิทธิ์ไม่ถูกต้อง');
         }
-        el('name').textContent=user.name;
-        el('role').textContent=roleLabel[user.role];
-        el('groups').textContent=Array.isArray(user.groups)&&user.groups.length ? user.groups.join(' · ') : 'ไม่มีการระบุกลุ่มงาน';
-        el('profile').hidden=false;
-        el('logout').hidden=false;
+        cacheSession(user);
+        renderProfile(user);
         setStatus('ยืนยันตัวตนและสิทธิ์จากสำเนาชีตสำเร็จ');
+        el('attendanceMonth').value=bangkokMonth();
+        await loadAttendance();
       } catch (error) {
+        clearCachedSession();
+        el('profile').hidden=true;
+        el('attendance').hidden=true;
         setStatus(error?.message||'เชื่อมต่อไม่สำเร็จ',true);
         el('retry').hidden=false;
         if (window.liff?.isLoggedIn?.()) el('logout').hidden=false;
       }
     }
     el('login').addEventListener('click',() => {
-      liff.login({redirectUri:location.origin+location.pathname});
+      liff.login({redirectUri:LIFF_REDIRECT_URI});
     });
     el('retry').addEventListener('click',start);
+    el('attendanceMonth').addEventListener('change',loadAttendance);
     el('diagnose').addEventListener('click',async () => {
       setStatus('กำลังตรวจ Web App ทดสอบ…');
       try {
@@ -154,8 +278,11 @@
     });
     el('logout').addEventListener('click',() => {
       currentFrame?.remove();
+      currentIdToken='';
+      clearCachedSession();
       liff.logout();
       el('profile').hidden=true;
+      el('attendance').hidden=true;
       el('logout').hidden=true;
       el('login').hidden=false;
       setStatus('ออกจาก LINE แล้ว');
