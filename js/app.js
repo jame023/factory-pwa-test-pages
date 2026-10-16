@@ -1,7 +1,7 @@
 import { startCalendarNotifications } from "./notifications.js";
 import { authProvider } from "./auth.js";
 import { renderAppHeader } from "../components/app-header.js";
-import { renderLoginScreen } from "../components/login-screen.js";
+import { renderLoginScreen } from "../components/login-screen.js?v=1.3.131";
 import { renderBottomNav } from "../components/bottom-nav.js";
 import { currentRoute, startRouter, refreshRoute } from "./router.js";
 import { subscribeStore } from './state.js';
