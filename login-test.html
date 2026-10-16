@@ -15,6 +15,7 @@
     dl{display:grid;grid-template-columns:110px 1fr;gap:10px;margin:0;font-size:17px}dt{color:#5b707b}dd{margin:0;font-weight:650;overflow-wrap:anywhere}
     .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}button{font:inherit;font-weight:700;padding:12px 20px;border:0;border-radius:12px;background:#006b79;color:#fff;cursor:pointer}
     button.secondary{background:#e8f1f3;color:#164453}button:disabled{opacity:.55;cursor:wait}small{display:block;color:#677e89;line-height:1.6;margin-top:20px}
+    .group-choices{display:flex;flex-wrap:wrap;gap:8px}.group-choice{padding:7px 12px;border-radius:999px;background:#eaf5f7;color:#07536e;font-size:15px}.group-choice:hover{background:#cfecef}
     .attendance{margin-top:28px;border-top:1px solid #dce8ec;padding-top:24px}.attendance-head{display:flex;justify-content:space-between;align-items:end;gap:18px;flex-wrap:wrap}
     .attendance h2{font-size:25px;margin:0}.month-field{display:grid;gap:6px;font-weight:700}.month-field input{font:inherit;padding:10px 12px;border:1px solid #bfd2da;border-radius:11px;color:#15364a;background:#fff}
     .attendance-status{margin:18px 0;padding:12px 14px;border-radius:12px;background:#edf6f8;color:#285465}.attendance-status.error{background:#fff0ef;color:#9e302b}
@@ -85,7 +86,29 @@
       el('role').textContent=roleLabel[user.role];
       el('primaryGroup').textContent=user.primaryGroup || 'ไม่ได้ระบุ';
       const groups=Array.isArray(user.accessGroups)&&user.accessGroups.length ? user.accessGroups : user.groups;
-      el('groups').textContent=Array.isArray(groups)&&groups.length ? groups.join(' · ') : 'ไม่มีการระบุกลุ่มงาน';
+      const groupEl=el('groups');
+      groupEl.replaceChildren();
+      const groupRoutes={
+        'ออฟฟิต':'#/home',
+        'สกรีน':'#/employee/work-session',
+        'ผลิต':'#/employee/production',
+        'ขนส่ง':'#/employee/delivery',
+        'ผู้บริหาร':'#/executive',
+        'admin':'#/admin'
+      };
+      if (Array.isArray(groups)&&groups.length) {
+        groupEl.className='group-choices';
+        groups.forEach(group => {
+          const button=document.createElement('button');
+          button.type='button';
+          button.className='group-choice';
+          button.textContent=group;
+          const route=groupRoutes[group];
+          if (route) button.addEventListener('click',()=>{ window.location.hash=route.slice(1); });
+          else button.disabled=true;
+          groupEl.append(button);
+        });
+      } else groupEl.textContent='ไม่มีการระบุกลุ่มงาน';
       el('profile').hidden=false;
       el('logout').hidden=false;
     }
