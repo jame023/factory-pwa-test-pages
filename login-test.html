@@ -49,7 +49,8 @@
     'use strict';
     const LIFF_ID = '2010715544-GiFWLPaD';
     const LIFF_REDIRECT_URI = 'https://jame023.github.io/factory-pwa-test-pages/login-test.html';
-    const POST_LOGIN_REDIRECT_URI = 'https://jame023.github.io/factory-pwa-test-pages/#/home';
+    const APP_BASE_URI = 'https://jame023.github.io/factory-pwa-test-pages/';
+    const POST_LOGIN_REDIRECT_URI = APP_BASE_URI+'#/home';
     function goToApp() {
       // Use a full navigation so a cached LIFF callback page cannot remain visible.
       window.location.href = POST_LOGIN_REDIRECT_URI;
@@ -104,7 +105,7 @@
           button.className='group-choice';
           button.textContent=group;
           const route=groupRoutes[group];
-          if (route) button.addEventListener('click',()=>{ window.location.hash=route.slice(1); });
+          if (route) button.addEventListener('click',()=>{ window.location.href=APP_BASE_URI+route; });
           else button.disabled=true;
           groupEl.append(button);
         });
