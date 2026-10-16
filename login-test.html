@@ -250,9 +250,7 @@
         cacheSession(user);
         renderProfile(user);
         setStatus('ยืนยันตัวตนและสิทธิ์จากสำเนาชีตสำเร็จ');
-        el('attendanceMonth').value=bangkokMonth();
-        await loadAttendance();
-        setTimeout(() => location.replace(POST_LOGIN_REDIRECT_URI),250);
+        location.replace(POST_LOGIN_REDIRECT_URI);
       } catch (error) {
         clearCachedSession();
         el('profile').hidden=true;
