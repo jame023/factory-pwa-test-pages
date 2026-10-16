@@ -1,4 +1,4 @@
-const CACHE_NAME = "factory-pwa-shell-v1.3.128";
+const CACHE_NAME = "factory-pwa-shell-v1.3.129";
 const APP_SHELL = [
   "./pages/production-record/index.js",
   "./pages/ot/index.js",
@@ -89,5 +89,6 @@ self.addEventListener("fetch", event => {
     }
   })());
 });
+
 
 
