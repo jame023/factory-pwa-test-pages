@@ -32,6 +32,11 @@ function renderLogin(message = "") {
   loadingRoot.hidden = true;
   pageRoot.innerHTML = renderLoginScreen(message);
   pageRoot.querySelector("[data-auth-login]")?.addEventListener("click", login);
+  pageRoot.querySelector("[data-auth-register]")?.addEventListener("click", register);
+}
+
+function register() {
+  showActionPopup("การสมัครสมาชิกต้องให้ Admin เพิ่มข้อมูลในชีตสิทธิ์ก่อน", { tone:"info", timeout:3200 });
 }
 
 async function login(event) {
