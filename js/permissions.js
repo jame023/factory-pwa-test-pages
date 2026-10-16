@@ -15,8 +15,7 @@ export function canAccessModule(user, module) {
   if (!user || !["employee", "executive", "admin"].includes(user.role)) return false;
   if (user.role !== "employee") return true;
   const groups = Array.isArray(user.groups) ? user.groups.map(normalizeGroup) : [];
-  if (groups.includes("ออฟฟิต")) return ["home", "attendance", "leave", "calendar"].includes(module);
-  if (module === "work-session") return !groups.includes("ขนส่ง") && groups.some(group => ["ผลิต", "สกรีน"].includes(group));
+  if (module === "work-session") return groups.some(group => ["ผลิต", "สกรีน"].includes(group));
   if (module === "delivery") return groups.includes("ขนส่ง");
   if (module === "production") return Array.isArray(user.groups) && user.groups.includes("สกรีน");
   if (module === "production-record") return isProductionEmployee(user);
@@ -63,3 +62,4 @@ export function assertMockPermission(role, key) {
   if(key.startsWith("package06.reports.") && key!=="package06.reports.notifications.read" && !canManage(normalized))throw new Error("เฉพาะผู้บริหารหรือ Admin เท่านั้น");
   if (key.startsWith("package11.") && !canEditAll(normalized)) throw new Error("เฉพาะ Admin เท่านั้น");
 }
+
