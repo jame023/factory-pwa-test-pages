@@ -5,10 +5,23 @@ import { ACTIVE_DIRECTORY_NAMES, DIRECTORY_SNAPSHOT_DATE } from './directory-sna
 import { getStore } from './state.js';
 
 const MOCK_LOGIN_KEY = "factory-pwa-demo-login-v1";
+const PWA_SESSION_CACHE_KEY = "factory-pwa-test-session-v1";
 const LINE_SIGNED_OUT_KEY = "factory-pwa-line-signed-out-v1";
 const SESSION_ROLES = new Set(["employee", "executive", "admin"]);
 const SESSION_GROUPS = new Set(["ผลิต", "สกรีน", "ขนส่ง", "ออฟฟิต"]);
 let liffPromise;
+
+function readPwaSessionCache() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(PWA_SESSION_CACHE_KEY) || "null");
+    const user = cached?.user;
+    if (!cached || cached.version !== 1 || !Number.isFinite(cached.expiresAt) || cached.expiresAt <= Date.now() ||
+        !user || user.active !== true || !SESSION_ROLES.has(user.role) || typeof user.id !== "string" || typeof user.name !== "string") return null;
+    const groups = Array.isArray(user.groups) ? [...new Set(user.groups.map(normalizeGroup).filter(value => SESSION_GROUPS.has(value)))] : [];
+    return { ...user, groups, calendarGroups: groups, accessGroups: Array.isArray(user.accessGroups) ? [...new Set(user.accessGroups.map(normalizeGroup))] : groups,
+      primaryGroup: typeof user.primaryGroup === "string" ? normalizeGroup(user.primaryGroup) : "", primaryWorkGroup: typeof user.primaryGroup === "string" ? normalizeGroup(user.primaryGroup) : "" };
+  } catch (_) { return null; }
+}
 
 export class AuthProvider {
   async getSession() { throw new Error("AuthProvider.getSession must be implemented"); }
@@ -32,6 +45,8 @@ export class MockAuthProvider extends AuthProvider {
         .filter(value => SESSION_GROUPS.has(value)))]) }), writable:false });
   }
   async getSession() {
+    const remembered = readPwaSessionCache();
+    if (remembered) return { user: remembered, provider: "line-session-cache", label: ROLE_LABELS[remembered.role] };
     if (localStorage.getItem(MOCK_LOGIN_KEY) !== "1") return null;
     const stored = getStore().employees.find(person=>person.id===this.user.id);
     const edited = !!stored?.updatedAt;
@@ -50,7 +65,7 @@ export class MockAuthProvider extends AuthProvider {
     if (!session) throw new Error("บัญชีตัวอย่างถูกปิดใช้งาน");
     return session;
   }
-  async logout() { localStorage.removeItem(MOCK_LOGIN_KEY); }
+  async logout() { localStorage.removeItem(MOCK_LOGIN_KEY); localStorage.removeItem(PWA_SESSION_CACHE_KEY); }
   async setRole() { throw new Error("เซสชันนี้ล็อกบทบาทไว้ ไม่สามารถเปลี่ยนสิทธิ์จากหน้าแอปได้"); }
 }
 
@@ -88,8 +103,12 @@ function validateServerSession(envelope) {
   if (!SESSION_ROLES.has(role) || user.active === false) throw new Error("บัญชีนี้ยังไม่มีสิทธิ์เข้าใช้งาน");
   const groups = Array.isArray(user.groups) ? [...new Set(user.groups.filter(value => typeof value === "string")
     .map(normalizeGroup).filter(value => SESSION_GROUPS.has(value)))] : [];
+  const accessGroups = Array.isArray(user.accessGroups) ? [...new Set(user.accessGroups
+    .filter(value => typeof value === "string").map(normalizeGroup).filter(Boolean))] : groups;
+  const primaryGroup = typeof user.primaryGroup === "string" ? normalizeGroup(user.primaryGroup) : "";
   const allowedProducts = values => Array.isArray(values) ? values.filter(value=>typeof value==="string" && value.length<=120) : [];
-  return { user:{ id:user.id, name:user.name.trim(), role, groups,
+  return { user:{ id:user.id, name:user.name.trim(), role, primaryGroup, primaryWorkGroup:primaryGroup,
+    accessGroups, groups,
     calendarGroups:Array.isArray(user.calendarGroups) ? user.calendarGroups.map(normalizeGroup).filter(value=>SESSION_GROUPS.has(value)) : groups,
     workAccess:{orders:allowedProducts(user.workAccess?.orders)},
     deliveryAccess:{allowed:user.deliveryAccess?.allowed===true, products:allowedProducts(user.deliveryAccess?.products)},
@@ -172,5 +191,6 @@ export function createAuthProvider(mode) {
     ? new DevelopmentAuthProvider() : new PwaAuthProvider();
 }
 export const authProvider = createAuthProvider(APP_MODE);
+
 
 
