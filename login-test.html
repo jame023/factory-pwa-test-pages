@@ -60,6 +60,10 @@
     const LIFF_ID = '2010715544-GiFWLPaD';
     const LIFF_REDIRECT_URI = 'https://jame023.github.io/factory-pwa-test-pages/login-test.html';
     const POST_LOGIN_REDIRECT_URI = 'https://jame023.github.io/factory-pwa-test-pages/#/home';
+    function goToApp() {
+      // Use a full navigation so a cached LIFF callback page cannot remain visible.
+      window.location.href = POST_LOGIN_REDIRECT_URI;
+    }
     const BRIDGE_URL = 'https://script.google.com/macros/s/AKfycbx8t30jZWovGkBjik3FELbTzIvjjkXb1Eq_KsB-hrxF1iFozVxqA1jHuYzdKRzUvgYB/exec';
     const REQUEST_SOURCE = 'factory-pwa-test-client-v1';
     const RESPONSE_SOURCE = 'factory-pwa-test-bridge-v1';
@@ -250,7 +254,7 @@
         cacheSession(user);
         renderProfile(user);
         setStatus('ยืนยันตัวตนและสิทธิ์จากสำเนาชีตสำเร็จ');
-        location.replace(POST_LOGIN_REDIRECT_URI);
+        window.setTimeout(goToApp, 80);
       } catch (error) {
         clearCachedSession();
         el('profile').hidden=true;
