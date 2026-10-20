@@ -36,7 +36,7 @@ function renderLogin(message = "") {
 }
 
 function register() {
-  showActionPopup("การสมัครสมาชิกต้องให้ Admin เพิ่มข้อมูลในชีตสิทธิ์ก่อน", { tone:"info", timeout:3200 });
+  showActionPopup("หน้าสมัครสมาชิกจะเปิดใน Pass ถัดไป", { tone:"info", timeout:3200 });
 }
 
 async function login(event) {

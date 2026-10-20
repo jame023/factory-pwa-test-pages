@@ -1,9 +1,12 @@
-# ระบบโรงงาน SIP — ตัวอย่างทดสอบ
+# Factory SIP PWA — Test Preview
 
-เว็บไซต์นี้เป็น **ตัวอย่างจำลองเท่านั้น** สำหรับเตรียมทดสอบ URL และการตั้งค่า LIFF ของ PWA
+This public GitHub Pages site is a test preview for Factory SIP. It starts LINE sign-in through the existing Supabase Auth provider `custom:factory-pwa-line`.
 
-- ยังไม่เชื่อม LINE Login, backend หรือ Google Sheets
-- ใช้ข้อมูลตัวอย่างจำลองเท่านั้น ห้ามใช้บันทึกงานจริง
-- ห้ามใส่รหัสผ่าน, token, key หรือข้อมูลพนักงานจริงใน repository นี้
+- Supabase Auth and its server-side access-token hook verify the LINE identity and issue the Supabase session.
+- The browser uses only the Supabase publishable key. Never add a LINE Channel Secret, Service Role Key, database password, or employee data to this repository.
+- The app reads only the signed-in employee and active group rows through Supabase RLS.
+- Supabase session material is kept in tab-scoped `sessionStorage`; LINE ID tokens are not persisted.
+- Registration is not implemented in this pass. The login screen points to the next pass.
+- This test preview is not the Production deployment. Google Sheets and Apps Script are not used here.
 
-เมื่อเตรียมการเชื่อมต่อจริงเสร็จ ต้องตรวจสอบสิทธิ์และ backend แยกก่อนเปิดให้พนักงานใช้
+If LINE authorization fails on this test URL, stop and check the existing Supabase/LINE redirect configuration before changing credentials.

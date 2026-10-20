@@ -7,7 +7,7 @@ export function renderLoginScreen(message = "") {
     '<p class="login-description">' + description + '</p>' +
     (message ? '<p class="notice notice-warning" role="alert">' + escapeHtml(message) + '</p>' : '') +
     '<div class="login-actions"><button class="button button-primary login-submit" type="button" data-auth-login>เข้าสู่ระบบ</button>' +
-    '<button class="button button-secondary login-register" type="button" data-auth-register>สมัครสมาชิก</button></div>' +
+    '<button class="button button-secondary login-register" type="button" data-auth-register>สมัครสมาชิก (Pass ถัดไป)</button></div>' +
     '<p class="help-text login-privacy">ระบบจะไม่เก็บ LINE token ไว้ในเครื่อง สิทธิ์ใช้งานต้องมาจาก backend เท่านั้น</p>' +
     '</section>';
 }
