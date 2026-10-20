@@ -1,13 +1,13 @@
 import { startCalendarNotifications } from "./notifications.js";
-import { authProvider } from "./auth.js";
+import { authProvider } from "./auth.js?v=2.1.1";
 import { renderAppHeader } from "../components/app-header.js";
-import { renderLoginScreen } from "../components/login-screen.js?v=1.3.131";
+import { renderLoginScreen } from "../components/login-screen.js?v=2.1.1";
 import { renderBottomNav } from "../components/bottom-nav.js";
 import { currentRoute, startRouter, refreshRoute } from "./router.js";
 import { subscribeStore } from './state.js';
 import { showToast } from "../components/toast.js";
 import { registerServiceWorker, setOfflineNotice, watchConnection } from "./offline.js";
-import { APP_MODE } from "./config.js";
+import { APP_MODE } from "./config.js?v=2.1.1";
 import { installActionFeedback, showActionPopup } from "../components/action-popup.js";
 
 let session;
@@ -105,7 +105,7 @@ async function mountApp() {
 
 async function start() {
   installActionFeedback();
-  if (APP_MODE === "mock") await registerServiceWorker();
+  await registerServiceWorker();
   setOfflineNotice(message => showToast(message, "error"));
   watchConnection();
   showActionPopup("กำลังตรวจสอบสถานะบัญชี…");
