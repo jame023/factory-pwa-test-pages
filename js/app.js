@@ -1,5 +1,5 @@
 import { startCalendarNotifications } from "./notifications.js";
-import { authProvider } from "./auth.js?v=2.1.1";
+import { authProvider } from "./auth.js?v=2.1.2";
 import { renderAppHeader } from "../components/app-header.js";
 import { renderLoginScreen } from "../components/login-screen.js?v=2.1.1";
 import { renderBottomNav } from "../components/bottom-nav.js";
