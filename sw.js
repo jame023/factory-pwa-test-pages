@@ -1,4 +1,4 @@
-const CACHE_NAME = "factory-pwa-shell-v1.3.130";
+const CACHE_NAME = "factory-pwa-shell-preview-2.1.1";
 const APP_SHELL = [
   "./pages/production-record/index.js",
   "./pages/ot/index.js",
@@ -20,7 +20,7 @@ const APP_SHELL = [
   "./js/manager-attendance-fixture.js", "./pages/attendance/manager.js",
   "./", "./index.html", "./offline.html", "./manifest.webmanifest",
   "./css/app.css", "./assets/icons/factory-192.png", "./assets/icons/factory-512.png",
-  "./js/app.js", "./js/auth.js", "./js/api.js", "./js/config.js", "./js/offline.js",
+  "./js/app.js", "./js/auth.js", "./js/pkce-oauth.js", "./js/api.js", "./js/config.js", "./js/offline.js",
   "./js/router.js", "./js/state.js", "./js/utils.js",
   "./js/permissions.js", "./js/record-schema.js", "./js/mock-api.js",
   "./js/attendance-contract.js", "./js/attendance-fixture.js", "./js/read-only-api.js",
