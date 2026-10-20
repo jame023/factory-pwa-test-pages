@@ -26,6 +26,43 @@ function renderChrome(route = currentRoute()) {
   headerRoot.querySelector("[data-auth-logout]")?.addEventListener("click", signOut);
 }
 
+function renderAuthenticatedLanding() {
+  renderChrome();
+  navRoot.replaceChildren();
+  loadingRoot.hidden = true;
+
+  const card = document.createElement("section");
+  card.className = "card card-pad";
+  const eyebrow = document.createElement("p");
+  eyebrow.className = "eyebrow";
+  eyebrow.textContent = "ยืนยันตัวตนสำเร็จ • Test Preview";
+  const title = document.createElement("h1");
+  title.textContent = "เข้าสู่ระบบสำเร็จ";
+  const description = document.createElement("p");
+  description.textContent = "ข้อมูลด้านล่างอ่านจากบัญชีและสิทธิ์ที่ตรวจสอบผ่าน Supabase แล้ว";
+  card.append(eyebrow, title, description);
+
+  const addRow = (label, value) => {
+    const row = document.createElement("p");
+    const strong = document.createElement("strong");
+    strong.textContent = label + ": ";
+    row.append(strong, document.createTextNode(value || "—"));
+    card.append(row);
+  };
+  addRow("ชื่อพนักงาน", session.user.name);
+  addRow("LINE Display Name", session.user.lineDisplayName);
+  addRow("บทบาท", session.user.role);
+  addRow("กลุ่มงานหลัก", session.user.main_group);
+  addRow("กลุ่มงานที่ได้รับสิทธิ์", session.user.groups?.join(", "));
+  addRow("สถานะบัญชี", session.user.active === true ? "ใช้งานได้" : "ระงับ");
+
+  const note = document.createElement("p");
+  note.className = "small-muted";
+  note.textContent = "โมดูลข้อมูลการทำงานยังไม่เปิดใน Test Preview";
+  card.append(note);
+  pageRoot.replaceChildren(card);
+}
+
 function renderLogin(message = "") {
   headerRoot.replaceChildren();
   navRoot.replaceChildren();
@@ -91,6 +128,10 @@ function watchMockAccount() {
 async function mountApp() {
   if (appMounted) return;
   appMounted = true;
+  if (APP_MODE === "supabase-line") {
+    renderAuthenticatedLanding();
+    return;
+  }
   renderChrome();
   stopNotifications = session.user.active===false ? undefined : startCalendarNotifications(session.user,showToast);
   watchMockAccount();
