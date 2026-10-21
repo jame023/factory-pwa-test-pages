@@ -8,12 +8,11 @@ import { canAccessModule, isProductionEmployee, isScreenEmployee } from "../../j
 
 const employeeModules = [
   { route:"attendance", icon:"🪪", title:"ข้อมูลของฉัน", hint:"ดูเวลาเข้าออกและสถานะ" },
-  { route:"work-session", icon:"▶️", title:"เริ่มงาน / จบงาน", hint:"กรอกและบันทึกงานที่ทำ" },
   { route:"leave", icon:"📝", title:"ขอลา", hint:"ส่งคำขอและติดตามสถานะ" },
   { route:"calendar", icon:"📅", title:"ปฏิทินงาน", hint:"ดูวันที่ทำงานตามกลุ่ม" },
   { route:"delivery", icon:"🚚", title:"บันทึกการขนส่ง", hint:"เลือกสินค้าและบันทึกจำนวน" },
   { route:"production", icon:"🖨️", title:"งานสกรีน", hint:"เริ่มงาน–จบงาน และบันทึกยอดสกรีนในหน้าเดียว" },
-  { route:"production-record", icon:"🏭", title:"บันทึกข้อมูลผลิต", hint:"เริ่มงาน–จบงาน และบันทึกยอดผลิตในหน้าเดียว" }
+  { route:"production-record", icon:"🏭", title:"งานผลิต", hint:"เริ่มงาน–จบงาน และบันทึกยอดผลิตในหน้าเดียว" }
   ,{ route:"ot", icon:"⏱️", title:"กรอกข้อมูล OT", hint:"บันทึกงานล่วงเวลา พร้อมรายละเอียดและรูปหลักฐาน" }
 ];
 const executiveModules = [
@@ -57,16 +56,8 @@ export async function render(root, { user, signal, workspace }) {
     executive:"ดูข้อมูลที่พนักงานบันทึก แยกตามหมวด พร้อมจัดการลาและปฏิทิน",
     admin:"ใช้งานได้ทั้งหน้าพนักงานและผู้บริหาร พร้อมแก้ไขข้อมูลทุกหมวด" }[role];
   const modules = role === "employee" ? employeeModules : role === "executive" ? executiveModules : adminModules;
-  const splitWorkflows = isScreenEmployee(user) && isProductionEmployee(user);
-  const visible = modules.filter(item => !(role === "employee" && ((splitWorkflows && item.route === "work-session") || (!splitWorkflows && isScreenEmployee(user) && item.route === "production") || (!splitWorkflows && isProductionEmployee(user) && item.route === "production-record"))) && canAccessModule(user, item.route)).map(item => ({
-    ...item,
-    ...(role === "employee" && isScreenEmployee(user) && item.route === "work-session" ? {
-      title:"เริ่มงาน–จบงาน + งานสกรีน", hint:"เริ่มหรือจบงาน และบันทึกยอดสกรีนในหน้าเดียว"
-    } : {}),
-    ...(role === "employee" && isProductionEmployee(user) && item.route === "work-session" ? {
-      title:"เริ่มงาน–จบงาน + บันทึกข้อมูลผลิต", hint:"เริ่มหรือจบงาน และบันทึกยอดผลิตในหน้าเดียว"
-    } : {}),
-    route:role === "admin" ? item.route : role + "/" + item.route
+  const visible = modules.filter(item => canAccessModule(user, item.route)).map(item => ({
+    ...item, route:role === "admin" ? item.route : role + "/" + item.route
   }));
   root.innerHTML =
     '<section class="card hero-card"><div class="hero-date">' + escapeHtml(thaiDate(bangkokToday())) +
