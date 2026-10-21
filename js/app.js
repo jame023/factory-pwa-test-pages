@@ -3,12 +3,12 @@ import { authProvider } from "./auth.js";
 import { renderAppHeader } from "../components/app-header.js";
 import { renderLoginScreen } from "../components/login-screen.js";
 import { renderBottomNav } from "../components/bottom-nav.js";
-import { currentRoute, startRouter, refreshRoute } from "./router.js?v=1.3.176";
+import { currentRoute, startRouter, refreshRoute } from "./router.js?v=1.3.177";
 import { subscribeStore } from './state.js';
 import { showToast } from "../components/toast.js";
 import { registerServiceWorker, setOfflineNotice, watchConnection } from "./offline.js";
-import { APP_MODE } from "./config.js?v=1.3.176";
-import { installActionFeedback, showActionPopup } from "../components/action-popup.js?v=1.3.176";
+import { APP_MODE } from "./config.js?v=1.3.177";
+import { installActionFeedback, showActionPopup } from "../components/action-popup.js?v=1.3.177";
 // Preserve the machine-only OAuth code before the mock app/router can replace the URL.
 const machineOAuthCode = new URLSearchParams(location.search).get('code');
 if (machineOAuthCode && /^#\/admin\/(machines|item-names)(?:$|\?)/.test(location.hash)) {
@@ -100,7 +100,7 @@ async function mountApp() {
 
 async function start() {
   installActionFeedback();
-  if (APP_MODE === "mock") await registerServiceWorker();
+  if (APP_MODE === "mock" || APP_MODE === "supabase-line") await registerServiceWorker();
   setOfflineNotice(message => showToast(message, "error"));
   watchConnection();
   showActionPopup("กำลังตรวจสอบสถานะบัญชี…");
