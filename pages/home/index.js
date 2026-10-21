@@ -1,6 +1,6 @@
-import * as attendanceApi from "../../adapters/package10.js";
-import * as workApi from "../../adapters/package07.js";
-import * as leaveApi from "../../adapters/package09.js";
+import * as attendanceApi from "../../adapters/package10.js?v=1.3.179";
+import * as workApi from "../../adapters/package07.js?v=1.3.179";
+import * as leaveApi from "../../adapters/package09.js?v=1.3.179";
 import { appCard, statCard } from "../../components/app-card.js";
 import { bangkokToday, escapeHtml, thaiDate } from "../../js/utils.js";
 import { APP_MODE } from "../../js/config.js";
