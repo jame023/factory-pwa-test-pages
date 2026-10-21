@@ -9,6 +9,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./assets/icons/factory-192.png" type="image/png">
   <link rel="stylesheet" href="./css/app.css?v=1.3.186">
+  <link rel="stylesheet" href="./css/pwa-install.css?v=1.3.192">
   <title>ระบบโรงงาน SIP</title>
 </head>
 <body>
@@ -19,9 +20,11 @@
   <main id="main-content" class="main-shell" tabindex="-1">
     <div id="page-loading" class="page-loading" aria-live="polite">กำลังเปิด ระบบโรงงาน SIP…</div>
     <section id="page-root" aria-live="polite"></section>
+    <section id="pwa-install-root" aria-label="ติดตั้งแอป" hidden></section>
   </main>
   <div id="nav-root"></div>
   <div id="toast-root" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+  <script type="module" src="./js/pwa-install.js?v=1.3.192"></script>
   <script type="module" src="./js/app.js?v=1.3.191"></script>
 </body>
 </html>
