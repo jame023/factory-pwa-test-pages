@@ -1,7 +1,7 @@
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js';
-import { getSupabaseLineAccessToken } from './auth.js';
-import { RECORD_SCHEMAS, validateRecord } from './record-schema.js';
-import { bangkokToday } from './utils.js';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1.3.180';
+import { getSupabaseLineAccessToken } from './auth.js?v=1.3.180';
+import { RECORD_SCHEMAS, validateRecord } from './record-schema.js?v=1.3.180';
+import { bangkokToday } from './utils.js?v=1.3.180';
 
 const CATEGORIES = new Set(['attendance','workSessions','leaveRequests','calendar','deliveries','production','screenEntries','otRequests']);
 const GROUP_BY_CATEGORY = { screenEntries:'สกรีน', production:'ผลิต', deliveries:'ขนส่ง' };
