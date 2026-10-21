@@ -96,7 +96,7 @@ export function installActionFeedback() {
   };
   document.addEventListener("click", event => {
     const control = event.target.closest?.("button");
-    if (!control || control.disabled || control.dataset.choice === "cancel") return;
+    if (!control || control.disabled || control.dataset.choice === "cancel" || control.dataset.actionFeedback === "false") return;
     announce(actionMessage(control));
   }, true);
   document.addEventListener("click", event => {
@@ -110,6 +110,7 @@ export function installActionFeedback() {
   }, true);
   document.addEventListener("change", event => {
     const control = event.target;
+    if (control.dataset.actionFeedback === "false") return;
     if (control.matches("select, input[type=month], input[type=date], input[type=search], input[type=checkbox], input[type=radio]")) {
       const isPeriod = control.matches("input[type=month], input[type=date]") || /search|month|date/.test(control.id + " " + control.name);
       announce(isPeriod ? "กำลังโหลดข้อมูลตามตัวเลือก…" : "กำลังปรับข้อมูลที่แสดง…");

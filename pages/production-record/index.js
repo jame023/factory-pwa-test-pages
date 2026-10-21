@@ -16,7 +16,7 @@ export async function render(root, context, {embedded=false} = {}) {
   const total=rows.reduce((sum,row)=>sum+Number(row.quantity||0),0);
   const defective=rows.reduce((sum,row)=>sum+Number(row.defective||0),0);
   root.innerHTML=(embedded?'<div class="section-title"><div><h2>บันทึกข้อมูลผลิต</h2><p>ใส่ยอดรายวันแยกจากจำนวนตอนจบงาน</p></div></div>':'<div class="page-heading"><h1>'+ (create?'บันทึกข้อมูลผลิต':'ข้อมูลผลิต') +'</h1></div>')+
-    '<p class="notice notice-warning">ข้อมูลจำลอง • ยังไม่เชื่อมชีตจริง</p>'+
+    '<p class="notice notice-info">บันทึกและอ่านรายการจาก Supabase</p>'+
     '<div class="grid grid-3 attendance-section">'+statCard('จำนวนผลิต',total,'ใบ')+statCard('ของเสีย',defective,'ใบ')+statCard('จำนวนดี',total-defective,'ใบ')+'</div>'+
     (create?'<section class="card form-card attendance-section"><h2>บันทึกยอดผลิต</h2><form id="production-record-form"><div class="form-grid">'+
       '<label class="field">วันที่<input id="production-date" name="date" type="date" required value="'+bangkokToday()+'"></label>'+
@@ -37,9 +37,10 @@ export async function render(root, context, {embedded=false} = {}) {
     button.disabled=true;button.textContent='กำลังบันทึกข้อมูลผลิต…';
     try {
       await api.createProductionEntry(values);
-      context.showToast('บันทึกข้อมูลผลิตแล้ว (mock)','success');
+      context.showToast('บันทึกข้อมูลผลิตแล้ว','success');
       await render(root,context,{embedded});
     } catch(error){context.showToast(error.message||'บันทึกไม่สำเร็จ','error');}
     finally{button.disabled=false;button.textContent='บันทึกข้อมูลผลิต';}
   });
 }
+

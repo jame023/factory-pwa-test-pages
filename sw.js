@@ -1,4 +1,4 @@
-const CACHE_NAME = "factory-pwa-shell-preview-2.1.2";
+const CACHE_NAME = "factory-pwa-shell-v1.3.176";
 const APP_SHELL = [
   "./pages/production-record/index.js",
   "./pages/ot/index.js",
@@ -18,14 +18,15 @@ const APP_SHELL = [
   "./js/notifications.js",
   "./pages/work-session/manager.js",
   "./js/manager-attendance-fixture.js", "./pages/attendance/manager.js",
+  "./js/machine-admin-repository.js", "./js/item-name-admin-repository.js", "./js/active-item-names.js", "./js/machine-admin-auth.js", "./js/pkce-oauth.js", "./pages/admin/machines.js", "./pages/admin/item-names.js", "./components/status-modal.js",
   "./", "./index.html", "./offline.html", "./manifest.webmanifest",
   "./css/app.css", "./assets/icons/factory-192.png", "./assets/icons/factory-512.png",
-  "./js/app.js", "./js/auth.js", "./js/pkce-oauth.js", "./js/api.js", "./js/config.js", "./js/offline.js",
+  "./js/app.js", "./js/auth.js", "./js/api.js", "./js/config.js", "./js/supabase-app-api.js", "./js/supabase-employee-repository.js", "./js/offline.js",
   "./js/router.js", "./js/state.js", "./js/utils.js",
   "./js/permissions.js", "./js/record-schema.js", "./js/mock-api.js",
   "./js/attendance-contract.js", "./js/attendance-fixture.js", "./js/read-only-api.js",
   "./components/app-card.js", "./components/app-header.js", "./components/login-screen.js", "./components/bottom-nav.js",
-  "./components/loading.js", "./components/modal.js", "./components/toast.js",
+  "./components/loading.js", "./components/modal.js", "./components/toast.js", "./components/status-modal.js",
   "./adapters/package01.js", "./adapters/package03.js", "./adapters/package04.js",
   "./adapters/package05.js", "./adapters/package06.js", "./adapters/package07.js",
   "./adapters/package08.js", "./adapters/package09.js", "./adapters/package10.js",
@@ -89,6 +90,13 @@ self.addEventListener("fetch", event => {
     }
   })());
 });
+
+
+
+
+
+
+
 
 
 

@@ -13,9 +13,13 @@ export const SCREEN_WORK_MACHINES = Object.freeze(["B1", "B2", "B3"]);
 export function canAccessModule(user, module) {
   if (module === 'devices') return false;
   if (!user || !["employee", "executive", "admin"].includes(user.role)) return false;
+  // These routes perform their own live Supabase Admin session check. Keep the
+  // route reachable so a mock/local session cannot silently render mock data.
+  if (["admin-employees", "admin-groups"].includes(module)) return true;
   if (user.role !== "employee") return true;
   const groups = Array.isArray(user.groups) ? user.groups.map(normalizeGroup) : [];
-  if (module === "work-session") return groups.some(group => ["ผลิต", "สกรีน"].includes(group));
+  if (groups.includes("ออฟฟิต")) return ["home", "attendance", "leave", "calendar"].includes(module);
+  if (module === "work-session") return !groups.includes("ขนส่ง") && groups.some(group => ["ผลิต", "สกรีน"].includes(group));
   if (module === "delivery") return groups.includes("ขนส่ง");
   if (module === "production") return Array.isArray(user.groups) && user.groups.includes("สกรีน");
   if (module === "production-record") return isProductionEmployee(user);
@@ -40,6 +44,10 @@ export function resolveWorkspaceRoute(path, role) {
   const parts = path.split("/");
   if (path === "home" || path === "") return { allowed:true, module:"home", workspace:role, canonical:"home" };
   if (path === "admin") return { allowed:role === "admin", module:"admin", workspace:"admin", canonical:path };
+  if (path === "admin/employees") return { allowed:["employee", "executive", "admin"].includes(role), module:"admin-employees", workspace:"admin", canonical:path };
+  if (path === "admin/groups") return { allowed:["employee", "executive", "admin"].includes(role), module:"admin-groups", workspace:"admin", canonical:path };
+  if (path === "admin/machines") return { allowed:["employee", "executive", "admin"].includes(role), module:"admin-machines", workspace:"admin", canonical:path };
+  if (path === "admin/item-names") return { allowed:["employee", "executive", "admin"].includes(role), module:"admin-item-names", workspace:"admin", canonical:path };
   const scoped = Object.hasOwn(workspaceModules, parts[0]);
   const workspace = scoped ? parts[0] : ownWorkspace;
   const module = scoped ? parts[1] || "home" : parts[0];
@@ -62,4 +70,3 @@ export function assertMockPermission(role, key) {
   if(key.startsWith("package06.reports.") && key!=="package06.reports.notifications.read" && !canManage(normalized))throw new Error("เฉพาะผู้บริหารหรือ Admin เท่านั้น");
   if (key.startsWith("package11.") && !canEditAll(normalized)) throw new Error("เฉพาะ Admin เท่านั้น");
 }
-

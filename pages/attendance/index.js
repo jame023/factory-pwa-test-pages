@@ -37,7 +37,7 @@ function calendar(data) {
     cells + '</div><p class="help-text">วันที่ยังไม่มีข้อมูลจะไม่ถูกสรุปเป็นวันขาดโดยหน้าแอป</p></section>';
 }
 function renderData(data, manager) {
-  const source = data.source.kind === "mock" ? "ข้อมูลจำลองในแอป" : "ข้อมูลทดสอบจาก API ในเครื่อง";
+  const source = data.source.kind === "real" ? "ข้อมูลจาก Supabase" : data.source.kind === "mock" ? "ข้อมูลจำลองในแอป" : data.source.kind === "development-fixture" ? "ข้อมูลทดสอบจาก API ในเครื่อง" : "ข้อมูลจากระบบ";
   const historyRows = rows => rows.map(row => '<div class="list-row"><div class="list-main">' +
     '<div class="list-title">' + escapeHtml(thaiDate(row.date)) + '</div><div class="list-meta">เข้า ' +
     escapeHtml(row.checkIn || "—") + ' • ออก ' + escapeHtml(row.checkOut || "—") +
@@ -48,7 +48,7 @@ function renderData(data, manager) {
   const firstHalf = historyPeriod() === "first";
   const visibleHistory = data.history.filter(row => firstHalf ? Number(row.date.slice(8,10)) <= 15 : Number(row.date.slice(8,10)) >= 16);
   const historyHeading = firstHalf ? "วันที่ 1–15" : "วันที่ 16–" + lastDay;
-  return '<p class="notice notice-warning">' + source + ' • ไม่มีข้อมูล Production</p>' +
+  return '<p class="notice notice-warning">' + source + ' </p>' +
     '<section class="card card-pad"><div class="status-row"><strong>ข้อมูลวันที่: ' + escapeHtml(thaiDate(data.date)) +
     '</strong><span class="badge ' + badge(data.workdayStatus) + '">' + labels[data.workdayStatus] + '</span></div></section>' +
     '<div class="grid grid-3 attendance-section">' +
@@ -67,7 +67,7 @@ function renderData(data, manager) {
     '<section class="card card-pad attendance-section"><h2>ประวัติเดือนที่เลือก</h2>' +
     '<div class="attendance-history-half"><h3>' + historyHeading + '</h3><div class="list">' + historyRows(visibleHistory) + '</div></div></section>' +
     (manager ? '<section class="card card-pad attendance-section"><h2>งานรอผู้บริหาร</h2><p>คำขอลารออนุมัติ ' +
-      manager.pendingLeaves + ' รายการ</p><p class="help-text">ข้อมูลตัวอย่าง อ่านอย่างเดียว</p></section>' : "") +
+      manager.pendingLeaves + ' รายการ</p><p class="help-text">ข้อมูลสรุปจาก Supabase อ่านอย่างเดียว</p></section>' : "") +
     '<p class="small-muted">— หมายถึงยังไม่มีข้อมูล • เขตเวลา Asia/Bangkok</p>';
 }
 
@@ -77,7 +77,7 @@ export async function render(root, { user, showToast, signal, onDataChange }) {
   let currentHistoryPeriod = historyPeriod();
   let version = 0;
   let controller;
-  root.innerHTML = '<div class="page-heading"><div><p class="eyebrow">Attendance</p><h1>' + (user.role === "employee" ? 'ข้อมูลของฉัน' : 'เวลาพนักงานตัวอย่าง') + '</h1>' +
+  root.innerHTML = '<div class="page-heading"><div><p class="eyebrow">Attendance</p><h1>' + (user.role === "employee" ? 'ข้อมูลของฉัน' : 'เวลาพนักงาน') + '</h1>' +
     '<p>ดูข้อมูลวันนี้และประวัติแยกตามครึ่งเดือน</p></div><button class="button button-small" data-refresh>รีเฟรช</button></div>' +
     '<section class="card card-pad"><div class="field"><label for="attendance-month">เลือกเดือน</label>' +
     '<input id="attendance-month" type="month" value="' + month + '"></div></section>' +
@@ -129,3 +129,5 @@ export async function render(root, { user, showToast, signal, onDataChange }) {
   }
   await load();
 }
+
+

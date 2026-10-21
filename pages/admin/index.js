@@ -40,7 +40,7 @@ function editorField(spec, record) {
   if (spec.options) input = '<select' + attributes + '>' + (!spec.options.includes(String(value)) ? '<option value="" selected disabled>เลือกค่าใหม่</option>' : '') + spec.options.map((option, index) =>
     '<option value="' + escapeHtml(option) + '"' + (String(value) === option ? ' selected' : '') + '>' + escapeHtml(spec.labels?.[index] || option) + '</option>').join('') + '</select>';
   else if (spec.type === "image-data") input = '<input type="hidden"' + attributes + ' value="' + escapeHtml(value) + '">' +
-    '<input id="edit-photo-file" name="photoFile" type="file" accept="image/*"><span class="help-text">เลือกภาพใหม่ได้ ไม่เกิน 512 KB • ข้อมูลจำลองในเบราว์เซอร์</span>' +
+    '<input id="edit-photo-file" name="photoFile" type="file" accept="image/*"><span class="help-text">เลือกภาพใหม่ได้ ไม่เกิน 512 KB</span>' +
     (value ? '<a href="' + escapeHtml(value) + '" target="_blank" rel="noreferrer">ดูรูปหลักฐานปัจจุบัน</a>' : '<span class="small-muted">ยังไม่มีรูปแนบ</span>');
   else if (spec.type === "textarea") input = '<textarea' + attributes + ' maxlength="' + (spec.maxLength ?? 500) + '">' + escapeHtml(value) + '</textarea>';
   else input = '<input' + attributes + ' type="' + spec.type + '" value="' + escapeHtml(value) + '"' +
@@ -74,8 +74,8 @@ export async function render(root, context) {
     const record = selected || (isAudit ? {} : blankRecord(category));
     root.innerHTML =
       '<div class="page-heading"><div><p class="eyebrow">Admin</p><h1>ศูนย์ควบคุม Admin</h1><p>ยึดหมวดงานและแนวทางจาก 11_admin_control_center</p></div></div>' +
-      '<div class="form-actions"><a class="button" href="#/employee">หน้าพนักงาน</a><a class="button" href="#/executive">หน้าผู้บริหาร</a></div>' +
-      '<p class="notice notice-warning">DEV MOCK • ยังไม่เชื่อมชีตจริง • การแก้ไขมีผลเฉพาะข้อมูลจำลองในเบราว์เซอร์นี้</p><nav class="admin-module-grid" aria-label="หมวดงานตามงาน 11">' + modules.map(([key,title,hint])=>'<button class="card admin-module-button" data-admin-module="'+key+'" aria-pressed="'+(category===key)+'"><strong>'+escapeHtml(title)+'</strong><span>'+escapeHtml(hint)+'</span></button>').join('')+'</nav>' +
+      '<div class="form-actions"><a class="button" href="#/employee">หน้าพนักงาน</a><a class="button" href="#/executive">หน้าผู้บริหาร</a><a class="button button-primary" href="#/admin/employees">จัดการพนักงาน (Supabase)</a><a class="button" href="#/admin/groups">จัดการสิทธิ์ (Supabase)</a><a class="button" href="#/admin/machines">จัดการเครื่องจักร</a><a class="button" href="#/admin/item-names">จัดการรายการชื่อ</a></div>' +
+      '<p class="notice notice-warning">รายการที่รองรับบันทึกลง Supabase และตรวจสิทธิ์จาก Session จริง</p><nav class="admin-module-grid" aria-label="หมวดงานตามงาน 11">' + modules.map(([key,title,hint])=>'<button class="card admin-module-button" data-admin-module="'+key+'" aria-pressed="'+(category===key)+'"><strong>'+escapeHtml(title)+'</strong><span>'+escapeHtml(hint)+'</span></button>').join('')+'</nav>' +
       (category === 'leaveRequests' ? '<section class="card card-pad attendance-section"><h2>คำขอลาและปฏิทินกลาง</h2><p class="help-text">ดูผู้ได้รับอนุมัติลาทุกกลุ่มในหน้าคำขอลาร่วมกับผู้บริหาร</p><a class="button" href="#/executive/leave">เปิดหน้าคำขอลา</a></section>' : '') +
       '<section data-record-browser class="card card-pad" style="margin-top:.8rem"><div class="field"><label for="admin-category">หมวดข้อมูล</label><select id="admin-category">' +
       modules.map(([key, label]) => '<option value="' + key + '"' + (category === key ? ' selected' : '') + '>' + escapeHtml(label) + '</option>').join('') +
@@ -112,7 +112,7 @@ export async function render(root, context) {
       '<section class="card card-pad" style="margin-top:.8rem"><h2>ประวัติการบันทึก (' + summary.auditCount + ')</h2><div class="list">' +
       (summary.auditLog.slice(0, 8).map(row => '<div class="list-row"><div><strong>' + escapeHtml(row.actor) + '</strong><div class="list-meta">' +
         escapeHtml(actionText(row.action)) + ' · ' + escapeHtml(thaiDateTime(row.createdAt)) + '</div></div></div>').join('') || '<p class="empty-state">ยังไม่มีประวัติ</p>') +
-      '</div></section><p class="notice notice-warning" style="margin-top:.8rem">ข้อมูลจำลองในอุปกรณ์นี้เท่านั้น รายงานจริงจะใช้ผลจากงาน 06 • แบบฟอร์มนี้ยังไม่เทียบเท่ากฎ Preview/Apply ของงาน 11 ครบทุกหมวด การตั้งค่า LINE / LIFF / Trigger / อุปกรณ์จริงยังไม่เปิดแก้ไข</p>';
+      '</div></section><p class="notice notice-warning" style="margin-top:.8rem">ข้อมูลในรายการอ่านและบันทึกผ่าน Supabase • การจัดการพนักงาน กลุ่มงาน เครื่องจักร และรายการชื่อใช้เมนู Admin แยก</p>';
     if(canCreate && creatingRecord && !selected) {
       const editor=root.querySelector('[data-admin-editor]');
       editor.className='attendance-section';
@@ -192,7 +192,7 @@ export async function render(root, context) {
       const targetCategory = category, targetId = selectedId;
       button.disabled = true;
       const changes = schema.fields.filter(spec=>JSON.stringify(selected?.[spec.key] ?? null)!==JSON.stringify(values[spec.key] ?? null)).map(spec=>spec.label+': '+printable(selected?.[spec.key])+' → '+printable(values[spec.key]));
-      const confirmed = await confirmAction({ title:'ตรวจสอบก่อนบันทึก • '+schema.label, message:changes.join('\n')+'\nเหตุผล: '+form.elements.changeReason.value, confirmLabel:'ยืนยันบันทึก Mock' });
+      const confirmed = await confirmAction({ title:'ตรวจสอบก่อนบันทึก • '+schema.label, message:changes.join('\n')+'\nเหตุผล: '+form.elements.changeReason.value, confirmLabel:'ยืนยันบันทึก' });
       if (!confirmed || context.signal?.aborted) { button.disabled = false; return; }
       button.textContent = 'กำลังบันทึก…';
       root.querySelectorAll('button, input, select, textarea').forEach(control => { control.disabled = true; });
@@ -201,7 +201,7 @@ export async function render(root, context) {
         const [nextRows, nextSummary] = await Promise.all([adminApi.listRecords(targetCategory), adminApi.readAdminSummary()]);
         if (context.signal?.aborted) return;
         rows = nextRows; summary = nextSummary; category = targetCategory; selectedId = result.id; creatingRecord=false; editingScreen=false; draw();
-        context.showToast('บันทึกข้อมูลแล้ว (mock)', 'success');
+        context.showToast('บันทึกข้อมูลแล้ว', 'success');
       } catch (error) { if (!context.signal?.aborted) { context.showToast(error.message || 'บันทึกไม่สำเร็จ', 'error'); draw(); } }
     });
   };
@@ -231,3 +231,4 @@ export async function render(root, context) {
   });
   draw();
 }
+

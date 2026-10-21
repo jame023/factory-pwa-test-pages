@@ -97,7 +97,7 @@ export async function render(root, context) {
             <div class="ot-photo-grid" data-photo-grid></div>
           </div>
         </div>
-        <p class="help-text leave-rule-note">ข้อมูลจำลองเก็บเฉพาะชื่อและขนาดรูป ไม่เก็บไฟล์ • ส่งคำขอได้เฉพาะ 05:00–21:00 น. เวลาไทย • ลากิจไม่เกิน 2 วันต่อครั้ง / 2 ครั้งต่อเดือน • ลาป่วยไม่มีใบรับรองไม่เกิน 1 ครั้งต่อเดือน</p>
+        <p class="help-text leave-rule-note">รูปแนบจะถูกส่งและบันทึกพร้อมคำขอใน Supabase • ส่งคำขอได้เฉพาะ 05:00–21:00 น. เวลาไทย • ลากิจไม่เกิน 2 วันต่อครั้ง / 2 ครั้งต่อเดือน • ลาป่วยไม่มีใบรับรองไม่เกิน 1 ครั้งต่อเดือน</p>
         <button class="button button-primary leave-submit" type="submit">ส่งคำขอ</button>
       </form>
     </section>` : "";
@@ -107,7 +107,7 @@ export async function render(root, context) {
     (manage ? '<section class="card card-pad attendance-section"><h2>รออนุมัติ</h2>'+ (rows.filter(row=>row.status==='pending').map(item=>'<article class="card card-pad attendance-section leave-request" data-request="'+e(item.id)+'">'+details(item)+'<label class="field">เหตุผลปฏิเสธ (กรอกเมื่อไม่อนุมัติ)<textarea data-rejection maxlength="500" placeholder="ระบุเหตุผลให้ผู้ขอลาทราบ"></textarea></label><div class="form-actions leave-decision-actions"><button class="button button-primary" data-decision="approved">อนุมัติ</button><button class="button button-danger" data-decision="rejected">ปฏิเสธ</button></div></article>').join('') || '<p>ไม่มีคำขอรออนุมัติ</p>')+'</section>' : '')+
     '<section class="card card-pad attendance-section" data-leave-calendar></section>'+
     '<section class="card card-pad attendance-section"><h2>ประวัติคำขอ</h2>'+ (rows.map(item=>'<article class="card card-pad attendance-section leave-request" data-request="'+e(item.id)+'">'+details(item)+'<strong class="leave-status" data-status="'+e(item.status)+'">'+e(statusText(item.status))+'</strong>'+(item.rejectionReason?'<p>เหตุผลปฏิเสธ: '+e(item.rejectionReason)+'</p>':'')+(item.employeeId===context.user.id && ['pending','approved'].includes(item.status) && storedLeaveItems(item).at(-1)?.date>=bangkokToday() ? '<label class="field">เหตุผลยกเลิก<textarea data-cancel-reason maxlength="500"></textarea></label><button class="button button-danger" data-cancel>ยกเลิกคำขอ</button>' : '')+'</article>').join('') || '<p>ยังไม่มีคำขอ</p>')+'</section>';
-  root.insertAdjacentHTML('beforeend','<section class="card card-pad attendance-section"><h2>รูปแจ้งผลและประวัติแจ้งเตือนการลา</h2><p class="help-text">แสดงตามสิทธิ์ผู้ขอ / ผู้บริหาร / ออฟฟิต • ยังเป็นข้อมูลจำลอง</p>'+ (notices.map(notice=>'<article class="leave-request card card-pad attendance-section"><h3>'+e(notice.title)+'</h3><p style="white-space:pre-wrap">'+e(notice.body)+'</p>'+ (renderLeaveMedia(notice.mediaPreview)||'<p class="help-text">รายการเดิมยังไม่มีรูปแนบแจ้งผล</p>')+'</article>').join('') || '<p>ยังไม่มีแจ้งเตือนการลา เมื่อทดลองส่งคำขอหรืออนุมัติ/ปฏิเสธ จะมีรูปตัวอย่างที่นี่</p>')+'</section>');
+  root.insertAdjacentHTML('beforeend','<section class="card card-pad attendance-section"><h2>รูปแจ้งผลและประวัติแจ้งเตือนการลา</h2><p class="help-text">แสดงตามสิทธิ์ผู้ขอ / ผู้บริหาร / ออฟฟิต • อ่านข้อมูลจาก Supabase</p>'+ (notices.map(notice=>'<article class="leave-request card card-pad attendance-section"><h3>'+e(notice.title)+'</h3><p style="white-space:pre-wrap">'+e(notice.body)+'</p>'+ (renderLeaveMedia(notice.mediaPreview)||'<p class="help-text">รายการเดิมยังไม่มีรูปแนบแจ้งผล</p>')+'</article>').join('') || '<p>ยังไม่มีประวัติแจ้งเตือนการลา</p>')+'</section>');
   mountApprovedLeaveCalendar(root, context);
   const form = root.querySelector('#leave-form');
   const proxyForm = root.querySelector('#admin-proxy-leave-form');
@@ -203,7 +203,7 @@ export async function render(root, context) {
       const confirmed = await confirmAction({title:'ยืนยันสร้างคำขอลาแทน',message:'คำขอจะเข้าสถานะรออนุมัติและแจ้งผู้บริหาร',confirmLabel:'ส่งคำขอ'});
       if (!confirmed) return;
       await adminApi.saveRecord('leaveRequests', null, {employee:values.employee,type:values.type,startDate:values.startDate,endDate:values.endDate,period:values.period,reason:values.reason,status:'pending'}, null, values.proxyReason);
-      context.showToast('สร้างคำขอลาแทนและแจ้งผู้บริหารแล้ว (mock)','success');
+      context.showToast('สร้างคำขอลาแทนแล้ว','success');
       await render(root, context);
     } catch (error) { context.showToast(error.message || 'สร้างคำขอลาแทนไม่สำเร็จ','error'); }
     finally { button.disabled = false; button.textContent = 'ส่งคำขอลาแทน'; }
@@ -224,9 +224,9 @@ export async function render(root, context) {
     try {
       await api.submitLeaveRequest({type:form.elements.type.value,startDate:form.elements.startDate.value,endDate:form.elements.endDate.value,reason:form.elements.reason.value,
         dates:[...form.querySelectorAll('[data-date]')].map(el=>({date:el.dataset.date,period:el.value})),
-        images:selectedPhotos.map(file=>({name:file.name,mimeType:file.type,size:file.size}))});
+        images:await Promise.all(selectedPhotos.map(file=>new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve({name:file.name,mimeType:file.type,size:file.size,dataUrl:reader.result});reader.onerror=()=>reject(new Error("อ่านรูปแนบไม่สำเร็จ"));reader.readAsDataURL(file);})))});
       clearPreviewUrls();
-      context.showToast('ส่งคำขอและสร้างแจ้งเตือนผู้บริหารแล้ว (mock)','success'); await render(root,context);
+      context.showToast('ส่งคำขอลาแล้ว','success'); await render(root,context);
     } catch(error) { context.showToast(error.message,'error'); }
     finally { button.disabled=false; button.textContent='ส่งคำขอ'; }
   });
@@ -240,13 +240,15 @@ export async function render(root, context) {
     controls.forEach(el=>{el.disabled=true;});
     const original=button.textContent;
     try {
-      if(!await confirmAction({title:cancel?'ยืนยันยกเลิกคำขอ':decision==='approved'?'ยืนยันอนุมัติ':'ยืนยันปฏิเสธ',message:'เปลี่ยนสถานะและสร้างแจ้งเตือนในข้อมูลจำลอง',confirmLabel:'ยืนยัน',danger:cancel || decision==='rejected'}))return;
+      if(!await confirmAction({title:cancel?'ยืนยันยกเลิกคำขอ':decision==='approved'?'ยืนยันอนุมัติ':'ยืนยันปฏิเสธ',message:'เปลี่ยนสถานะคำขอใน Supabase',confirmLabel:'ยืนยัน',danger:cancel || decision==='rejected'}))return;
       if(context.signal?.aborted)return;
       button.textContent='กำลังบันทึก…';
       if(cancel)await api.cancelLeaveRequest(article.dataset.request,reason);
       else await api.reviewLeaveRequest(article.dataset.request,decision,reason);
-      context.showToast('บันทึกและสร้างแจ้งเตือนแล้ว (mock)','success'); await render(root,context);
+      context.showToast('บันทึกสถานะคำขอลาแล้ว','success'); await render(root,context);
     }catch(error){context.showToast(error.message,'error');}
     finally{controls.forEach(el=>{el.disabled=false;});button.textContent=original;}
   }));
 }
+
+

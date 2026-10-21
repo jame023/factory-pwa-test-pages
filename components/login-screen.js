@@ -1,15 +1,17 @@
+import { APP_MODE } from "../js/config.js";
 import { escapeHtml } from "../js/utils.js";
 
 export function renderLoginScreen(message = "") {
-  const heading = "เข้าสู่ระบบด้วย LINE";
-  const description = "ยืนยันตัวตนด้วย LINE แล้วระบบจะแสดงหน้าตามบทบาทและกลุ่มงานที่ได้รับอนุญาตจากข้อมูลสิทธิที่ตรวจสอบแล้ว";  return '<section class="login-screen card card-pad" aria-labelledby="login-title">' +
+  const mock = APP_MODE === "mock";
+  const heading = mock ? "เข้าสู่ระบบตัวอย่าง" : "เข้าสู่ระบบด้วย LINE";
+  const description = mock
+    ? "ทางเข้าระบบเดียวสำหรับพนักงานกลุ่มผลิต สกรีน ขนส่ง ออฟฟิต ผู้บริหาร และ Admin ตอนนี้เป็นโหมดจำลอง ยังไม่ตรวจ LINE หรือสิทธิจากชีตจริง"
+    : "ยืนยันตัวตนด้วย LINE แล้วระบบจะแสดงหน้าตามบทบาทและกลุ่มงานที่ได้รับอนุญาตจากข้อมูลสิทธิที่ตรวจสอบแล้ว";  return '<section class="login-screen card card-pad" aria-labelledby="login-title">' +
     '<div class="login-brand"><img src="./assets/icons/sip-logo.png" alt="" width="64" height="64"><div><p class="eyebrow">ระบบโรงงาน SIP</p><h1 id="login-title">' + heading + '</h1></div></div>' +
     '<p class="login-description">' + description + '</p>' +
     (message ? '<p class="notice notice-warning" role="alert">' + escapeHtml(message) + '</p>' : '') +
-    '<div class="login-actions"><button class="button button-primary login-submit" type="button" data-auth-login>เข้าสู่ระบบ</button>' +
-    '<button class="button button-secondary login-register" type="button" data-auth-register>สมัครสมาชิก (Pass ถัดไป)</button></div>' +
+    '<button class="button button-primary login-submit" type="button" data-auth-login>' + (mock ? "เข้าสู่ระบบตัวอย่าง" : "ยืนยันตัวตนด้วย LINE") + '</button>' +
     '<p class="help-text login-privacy">ระบบจะไม่เก็บ LINE token ไว้ในเครื่อง สิทธิ์ใช้งานต้องมาจาก backend เท่านั้น</p>' +
     '</section>';
 }
-
 

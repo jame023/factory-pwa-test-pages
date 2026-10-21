@@ -32,7 +32,7 @@ async function prepareDeliveryPhoto(file) {
 
 const drawRows = rows => [...rows].sort((a,b) => String(b.dateTime || b.createdAt || "").localeCompare(String(a.dateTime || a.createdAt || ""))).slice(0, 8).map(item => {
   const fields = [
-    ["เลขที่บิล",item.billNumber || "—"], ["รูปหลักฐานจำลอง",item.images?.length || 0], ["สินค้า",item.product], ["จำนวน",item.quantity], ["ผู้ส่ง",item.sender],
+    ["เลขที่บิล",item.billNumber || "—"], ["จำนวนรูปหลักฐาน",item.images?.length || 0], ["สินค้า",item.product], ["จำนวน",item.quantity], ["ผู้ส่ง",item.sender],
     ["วันที่และเวลาส่ง",thaiDateTime(item.dateTime || item.createdAt)], ["สถานะ",item.status],
     ["หมายเหตุ",item.note || "—"], ["รหัสรายการ",item.id || "—"],
     ["บันทึกเมื่อ",item.createdAt ? thaiDateTime(item.createdAt) : "—"]
@@ -57,13 +57,13 @@ export async function render(root, context) {
       '<div class="field"><label for="billNumber">เลขที่บิล</label><input id="billNumber" name="billNumber" pattern="[Ss][Dd][0-9]{9}" maxlength="11" placeholder="SD123456789" required></div>' +
       '<div class="field field-full"><span class="field-label">รูปหลักฐาน <span class="ot-optional">จำเป็น</span></span><div class="ot-upload-box" data-delivery-dropzone><div class="ot-upload-mark" aria-hidden="true">＋</div><div class="ot-upload-copy"><strong>เพิ่มรูปหลักฐานการขนส่ง</strong><span>เลือกหลายรูปหรือเพิ่มภายหลังได้</span><small>JPG, PNG หรือ WebP • บีบอัดรูปใหญ่ให้อัตโนมัติ • สูงสุด 10 รูป รูปละไม่เกิน 1 MB</small></div><label class="button button-small ot-upload-button" for="deliveryImages">เลือกรูป<input id="deliveryImages" class="ot-file-input" type="file" accept="image/jpeg,image/png,image/webp" multiple required></label></div><div class="ot-photo-status" data-delivery-photo-status role="status" aria-live="polite">ยังไม่ได้เลือกรูป</div><div class="ot-photo-grid" data-delivery-photo-grid></div></div>' +
       '<div class="field"><label for="quantity">จำนวน</label><input id="quantity" name="quantity" type="number" inputmode="decimal" min="0.01" step="any" required></div>' +
-      '<div class="field"><label for="sender">ผู้ส่ง</label><input id="sender" name="sender" readonly required value="' + escapeHtml(options.sender || '') + '" placeholder="รอยืนยันสิทธิ์จากชีต"><p class="small-muted">กำหนดจากบัญชีที่ได้รับสิทธิ์ ไม่สามารถเปลี่ยนชื่อได้</p></div>' +
+      '<div class="field"><label for="sender">ผู้ส่ง</label><input id="sender" name="sender" readonly required value="' + escapeHtml(options.sender || '') + '" placeholder="รอยืนยันสิทธิ์จาก Supabase"><p class="small-muted">กำหนดจากบัญชีที่เข้าสู่ระบบ ไม่สามารถเปลี่ยนชื่อได้</p></div>' +
       '<div class="field"><label for="dateTime">วันที่และเวลา</label><input id="dateTime" name="dateTime" type="datetime-local" required value="' + escapeHtml(localDateTimeValue()) + '"></div>' +
       '<div class="field"><label for="deliveryStatus">สถานะ</label><input id="deliveryStatus" name="status" value="ส่งสำเร็จ" readonly></div>' +
-    '</div>' + (!ready ? '<p class="small-muted" role="status">ยังไม่ได้เชื่อมข้อมูลสินค้าและสิทธิ์ผู้ส่งจากชีต จึงยังบันทึกไม่ได้</p>' : '') + '<div class="form-actions"><button class="button button-primary" type="submit"' + (ready ? '' : ' disabled data-live-disabled') + '>ตรวจสอบและบันทึก</button></div></form></section>' : '') +
+    '</div>' + (!ready ? '<p class="small-muted" role="status">ยังไม่มีสินค้า หรือบัญชีนี้ไม่มีสิทธิ์บันทึกการขนส่ง</p>' : '') + '<div class="form-actions"><button class="button button-primary" type="submit"' + (ready ? '' : ' disabled data-live-disabled') + '>ตรวจสอบและบันทึก</button></div></form></section>' : '') +
     '<div class="section-title"><div><h2>รายการล่าสุด</h2><p>แสดงสูงสุด 8 รายการ</p></div></div>' +
     '<section class="card card-pad"><div class="list">' + (rows.length ? drawRows(rows) : '<div class="empty-state">ยังไม่มีรายการขนส่ง</div>') +
-    "</div></section><p class=\"small-muted\" style=\"margin-top:.8rem\">ยังไม่เชื่อมกับระบบการขนส่งจริง Package 04</p>";
+    "</div></section><p class=\"small-muted\" style=\"margin-top:.8rem\">ข้อมูลและรายการขนส่งเชื่อมกับ Supabase</p>";
   const form = root.querySelector("#delivery-form");
   form?.addEventListener("submit", async event => {
     event.preventDefault();
@@ -75,9 +75,10 @@ export async function render(root, context) {
     if (Number(values.quantity) <= 0) { context.showToast("จำนวนต้องมากกว่า 0", "error"); return; }
     button.disabled = true; button.textContent = "กำลังบันทึก…";
     try {
-      await deliveryApi.createDelivery({...values,images:selectedPhotos.map(file=>({name:file.name,mimeType:file.type,size:file.size}))});
+      const images=await Promise.all(selectedPhotos.map(file=>new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve({name:file.name,mimeType:file.type,size:file.size,dataUrl:reader.result});reader.onerror=()=>reject(new Error("อ่านรูปแนบไม่สำเร็จ"));reader.readAsDataURL(file);})));
+      await deliveryApi.createDelivery({...values,images});
       clearPreviewUrls();
-      context.showToast("บันทึกรายการแล้ว (mock)", "success");
+      context.showToast("บันทึกรายการแล้ว", "success");
       await render(root, context);
     } catch (error) {
       context.showToast(error.message || "บันทึกไม่สำเร็จ", "error");
@@ -116,3 +117,7 @@ export async function render(root, context) {
   dropzone?.addEventListener('dragleave',event=>{if(!dropzone.contains(event.relatedTarget))dropzone.classList.remove('is-dragging');});
   dropzone?.addEventListener('drop',event=>{event.preventDefault();dropzone.classList.remove('is-dragging');void addPhotos(event.dataTransfer?.files);});
 }
+
+
+
+

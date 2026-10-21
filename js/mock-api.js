@@ -1,3 +1,4 @@
+import { requireActiveItemName } from './active-item-names.js';
 import { attendanceRecords, personalAttendanceRows, attendanceDashboard, normalizeAttendanceRecord } from "./attendance-data.js";
 import { canReadLeaveNotice, leaveMediaPreview } from "./leave-media.js";
 import { createMockReport, acceptMockReport, reportNotice, REPORT_KINDS } from "./report-inbox.js";
@@ -171,7 +172,14 @@ export const createMockApi = sessionProvider => async (module, action, payload =
       payload={date,details,hours:Math.round(durationMinutes)/60,photo:normalizedPhotos[0] || "",photos:normalizedPhotos}; return created("otRequests");
     }
     case "package07.work.start": {
-      assertWorkStart(payload,user,state.workSessions);
+      // Work-session storage remains the existing development adapter. Names supplied by
+      // the live catalogue must be checked in Supabase rather than the old snapshot.
+      let workUser = user;
+      if (payload.workType === 'สกรีน' && payload.itemNameId) {
+        const item = await requireActiveItemName(payload.itemNameId, payload.orderName);
+        workUser = { ...user, workAccess:{ ...user.workAccess, orders:[item.item_name] } };
+      }
+      assertWorkStart(payload,workUser,state.workSessions);
       if (isProductionEmployee(user) && (payload.workType !== "ผลิต" || !PRODUCTION_WORK_MACHINES.includes(payload.machine))) {
         throw new Error("กลุ่มผลิตเริ่มได้เฉพาะงานผลิต เครื่อง A1, A2 หรือ C1");
       }

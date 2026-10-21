@@ -1,3 +1,5 @@
+import { listActiveItemNames, requireActiveItemName } from '../../js/active-item-names.js';
+import { loginToMachineAdmin } from '../../js/machine-admin-auth.js';
 import { renderWorkManager } from "./manager.js";
 import * as workApi from "../../adapters/package07.js";
 import * as screenApi from "../../adapters/package01.js";
@@ -25,12 +27,17 @@ export async function render(root, context) {
   if (context.user.role === "executive" || (context.user.role === "admin" && context.workspace === "executive")) return renderWorkManager(root,context);
   root.innerHTML = '<div class="page-loading"><span class="loading-spinner"></span><span>กำลังโหลดงาน…</span></div>';
   const rows = await workApi.listWorkSessions();
-  const options = await workApi.readWorkOptions();
   const canCreate = canEnterData(context.user.role);
   const productionOnly = isProductionEmployee(context.user);
   const screenOnly = isScreenEmployee(context.user);
   const machines = productionOnly ? PRODUCTION_WORK_MACHINES : screenOnly ? SCREEN_WORK_MACHINES : WORK_MACHINES;
   const active = rows.find(item => item.employeeId === context.user.id && !item.endedAt);
+  let itemNames = [], itemNameError = '';
+  if (canCreate && !active) {
+    try { itemNames = await listActiveItemNames(); }
+    catch (error) { itemNameError = error.message; }
+  }
+  if (context.signal?.aborted) return;
   const screenEntries = screenOnly ? await screenApi.readScreenManualEntries() : [];
   const screenTotals = screenEntries.reduce((totals, entry) => ({
     packs: totals.packs + Number(entry.enteredPack || 0),
@@ -51,7 +58,7 @@ export async function render(root, context) {
         '<div class="field"><label for="workType">ประเภทงาน</label>' + (productionOnly ? '<input id="workType" name="workType" value="ผลิต" readonly>' : screenOnly ? '<input id="workType" name="workType" value="สกรีน" readonly>' : '<select id="workType" name="workType" required>' + selectOptions(WORK_TYPES) + '</select>') + '</div>' +
         '<div class="field"><label for="machine">เครื่องจักร</label><select id="machine" name="machine" required>' +
           selectOptions(machines) + '</select></div>' +
-        '<div class="field" id="order-field" hidden><label for="orderName">ชื่อออเดอร์</label><select id="orderName" name="orderName" disabled><option value="">เลือกออเดอร์ที่ได้รับสิทธิ์</option>' + selectOptions(options.orders) + '</select><p class="help-text">รายการออเดอร์ตัวอย่าง • ยังไม่เชื่อมต่อชีตจริง</p></div>' +
+        '<div class="field" id="order-field" hidden><label for="orderName">ชื่อรายการ</label><select id="orderName" name="orderName" disabled><option value="">เลือกชื่อรายการ</option>' + itemNames.map(item => '<option value="' + escapeHtml(item.item_name) + '" data-item-id="' + escapeHtml(item.id) + '">' + escapeHtml(item.item_name) + '</option>').join('') + '</select><p class="help-text">' + (itemNameError ? escapeHtml(itemNameError) : 'แสดงเฉพาะชื่อที่เปิดใช้งาน') + '</p>' + (itemNameError ? '<button class="button button-small" type="button" data-item-catalog-login>เข้าสู่ระบบ LINE / โหลดรายการใหม่</button>' : '') + '</div>' +
         '<div class="field field-full"><label for="workNote">หมายเหตุ</label><textarea id="workNote" name="note" maxlength="300" placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"></textarea></div>' +
         '</div><div class="form-actions"><button class="button button-primary" type="submit">▶️ เริ่มงาน</button></div></form></section>') : '') +
     (screenOnly && !active ? '<div class="section-title"><div><h2>บันทึกยอดสกรีน</h2><p>ใส่ยอดรายวันแยกจากปุ่มเริ่ม–จบงาน</p></div></div>' +
@@ -82,12 +89,13 @@ export async function render(root, context) {
 
   if (productionOnly && !active) await renderProductionRecord(root.querySelector("[data-production-record]"), context, {embedded:true});
 
+  root.querySelector('[data-item-catalog-login]')?.addEventListener('click', () => loginToMachineAdmin().catch(error => context.showToast(error.message, 'error')));
   const form = root.querySelector("#work-form");
   if (form) {
     const syncWorkType = () => {
       const screen = form.elements.workType.value === "สกรีน";
       root.querySelector("#order-field").hidden = !screen;
-      form.elements.orderName.disabled = !screen;
+      form.elements.orderName.disabled = !screen || !!itemNameError || itemNames.length === 0;
       form.elements.orderName.required = screen;
       if (!screen) form.elements.orderName.value = "";
     };
@@ -102,6 +110,11 @@ export async function render(root, context) {
     button.disabled = true; button.textContent = "กำลังเริ่มงาน…";
     const values = Object.fromEntries(new FormData(form));
     try {
+      if (values.workType === 'สกรีน') {
+        const id = form.elements.orderName.selectedOptions[0]?.dataset.itemId;
+        await requireActiveItemName(id, values.orderName);
+        values.itemNameId = id;
+      }
       await workApi.startWorkSession({ ...values, employee: context.user.name });
       context.showToast("เริ่มงานแล้ว", "success");
       await render(root, context);
@@ -124,7 +137,7 @@ export async function render(root, context) {
     button.disabled = true; button.textContent = "กำลังบันทึก…";
     try {
       await screenApi.saveScreenManualEntry(values);
-      context.showToast("บันทึกงานสกรีนแล้ว (mock)", "success");
+      context.showToast("บันทึกงานสกรีนลง Supabase แล้ว", "success");
       await render(root, context);
     } catch (error) {
       context.showToast(error.message || "บันทึกไม่สำเร็จ", "error");
@@ -164,3 +177,4 @@ export async function render(root, context) {
     }
   });
 }
+

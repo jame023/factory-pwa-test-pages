@@ -1,5 +1,5 @@
 import { APP_MODE, MOCK_USERS, ROLE_LABELS, MOCK_SESSION_ROLE, MOCK_SESSION_GROUP, LINE_LIFF_ID, API_BASE_URL,
-  SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, SUPABASE_LINE_PROVIDER } from "./config.js?v=1.3.157";
+  SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, SUPABASE_LINE_PROVIDER } from "./config.js?v=1.3.176";
 import { startPkceOAuth, completePkceOAuth } from "./pkce-oauth.js";
 
 import { requestReadOnly } from "./read-only-api.js";
@@ -199,6 +199,14 @@ async function supabaseRequest(path, { method = "GET", token, body } = {}) {
 
 function clearSupabaseSession() { sessionStorage.removeItem(SUPABASE_SESSION_KEY); }
 
+export function getSupabaseLineAccessToken() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(SUPABASE_SESSION_KEY) || 'null');
+    if (!saved?.accessToken || !Number.isFinite(saved.expiresAt) || saved.expiresAt <= Date.now()) return '';
+    return saved.accessToken;
+  } catch (_) { return ''; }
+}
+
 function roleForGroups(groups) {
   if (groups.includes("Admin")) return "admin";
   if (groups.includes("ผู้บริหาร")) return "executive";
@@ -310,5 +318,6 @@ export function createAuthProvider(mode) {
     ? new DevelopmentAuthProvider() : new PwaAuthProvider();
 }
 export const authProvider = createAuthProvider(APP_MODE);
+
 
 

@@ -14,7 +14,7 @@ const renderRows = rows => [...rows].sort((a,b) => String(b.createdAt || "").loc
     ["หมายเหตุ",item.note || "—"], ["บันทึกเมื่อ",item.createdAt ? thaiDateTime(item.createdAt) : "—"],
     ["รหัสรายการ",item.id || "—"]
   ];
-  return '<article class="screen-record"><div class="list-row"><div class="list-main"><div class="list-title">' + escapeHtml(item.sheetName) + ' · ' + escapeHtml(item.operatorName || "—") + '</div><div class="list-meta">' + escapeHtml(item.date ? thaiDate(item.date) : "—") + ' · แพ็ค ' + escapeHtml(item.enteredPack ?? "—") + ' · เสียจากสกรีน ' + escapeHtml(item.missingBottles ?? "—") + ' · เสียจากผลิต ' + escapeHtml(item.productionDamagedBottles ?? "—") + '</div></div><span class="badge badge-info">mock</span></div><details class="screen-record-details" data-live-key="' + escapeHtml(item.id) + '"><summary>ดูรายละเอียดข้อมูลสกรีน</summary><dl class="work-manager-fields">' + fields.map(([label,value]) => '<div><dt>' + escapeHtml(label) + '</dt><dd>' + escapeHtml(String(value ?? "—")) + '</dd></div>').join("") + '</dl></details></article>';
+  return '<article class="screen-record"><div class="list-row"><div class="list-main"><div class="list-title">' + escapeHtml(item.sheetName) + ' · ' + escapeHtml(item.operatorName || "—") + '</div><div class="list-meta">' + escapeHtml(item.date ? thaiDate(item.date) : "—") + ' · แพ็ค ' + escapeHtml(item.enteredPack ?? "—") + ' · เสียจากสกรีน ' + escapeHtml(item.missingBottles ?? "—") + ' · เสียจากผลิต ' + escapeHtml(item.productionDamagedBottles ?? "—") + '</div></div><span class="badge badge-info">Supabase</span></div><details class="screen-record-details" data-live-key="' + escapeHtml(item.id) + '"><summary>ดูรายละเอียดข้อมูลสกรีน</summary><dl class="work-manager-fields">' + fields.map(([label,value]) => '<div><dt>' + escapeHtml(label) + '</dt><dd>' + escapeHtml(String(value ?? "—")) + '</dd></div>').join("") + '</dl></details></article>';
 }).join("");
 
 export async function render(root, context) {
@@ -31,22 +31,22 @@ export async function render(root, context) {
   root.innerHTML =
     '<div class="page-heading"><div><p class="eyebrow">Screen Manual • Package 01</p><h1>' + (canCreate ? 'งานสกรีน' : 'ข้อมูลสกรีน') + '</h1><p>' +
     (canCreate ? 'บันทึกยอดประจำวันตามแบบหน้า Manual' : 'ดูรายการที่พนักงานบันทึก') + '</p></div></div>' +
-    '<p class="notice notice-warning">DEV MOCK • รายการ B1–B3 สินค้า ผู้บันทึก และยอดในตัวอย่างเป็นข้อมูลจำลอง ยังไม่ได้เชื่อมหน้า Manual จริง</p>' +
-    '<div class="grid grid-3 attendance-section">' + statCard("จำนวนแพ็ค", String(totalPack), "ข้อมูล mock") +
-      statCard("เสียจากสกรีน", String(screenDefects), "ข้อมูล mock") +
-      statCard("เสียจากผลิต", String(productionDefects), "ข้อมูล mock") + '</div>' +
+    '<p class="notice notice-warning">รายการบันทึกงานสกรีนอ่านและเขียนผ่าน Supabase</p>' +
+    '<div class="grid grid-3 attendance-section">' + statCard("จำนวนแพ็ค", String(totalPack), "ข้อมูลจาก Supabase") +
+      statCard("เสียจากสกรีน", String(screenDefects), "ข้อมูลจาก Supabase") +
+      statCard("เสียจากผลิต", String(productionDefects), "ข้อมูลจาก Supabase") + '</div>' +
     (canCreate ? '<section class="card form-card" style="margin-top:.8rem"><h2>บันทึกข้อมูลประจำวัน</h2><form id="screen-manual-form" style="margin-top:.8rem"><div class="form-grid">' +
       '<div class="field"><label for="entryDate">วันที่</label><input id="entryDate" name="date" type="date" value="' + escapeHtml(bangkokToday()) + '" readonly required></div>' +
       '<div class="field"><label for="entrySheet">เครื่องจักร</label><select id="entrySheet" name="sheetName" required><option value="">เลือกเครื่อง</option>' + machines.map(machine => '<option value="' + escapeHtml(machine) + '">' + escapeHtml(machine) + '</option>').join("") + '</select></div>' +
       '<div class="field"><label for="enteredPack">จำนวนแพ็คที่ได้ของวันนี้</label><input id="enteredPack" name="enteredPack" type="number" min="0" step="any" inputmode="decimal" placeholder="เว้นว่างถ้าไม่บันทึก"></div>' +
       '<div class="field"><label for="missingBottles">จำนวนเสียจากสกรีน</label><input id="missingBottles" name="missingBottles" type="number" min="0" step="any" inputmode="decimal" placeholder="เว้นว่างถ้าไม่บันทึก"></div>' +
       '<div class="field"><label for="productionDamagedBottles">จำนวนเสียจากผลิต</label><input id="productionDamagedBottles" name="productionDamagedBottles" type="number" min="0" step="any" inputmode="decimal" placeholder="เว้นว่างถ้าไม่บันทึก"></div>' +
-      '<div class="field"><label for="operatorName">ผู้บันทึก</label><input id="operatorName" name="operatorName" value="' + escapeHtml(context.user.name) + '" readonly required><p class="small-muted">ยืนยันจากบัญชีจำลอง</p></div>' +
+      '<div class="field"><label for="operatorName">ผู้บันทึก</label><input id="operatorName" name="operatorName" value="' + escapeHtml(context.user.name) + '" readonly required><p class="small-muted">ยืนยันจากบัญชีที่เข้าสู่ระบบ</p></div>' +
       '<div class="field field-full"><label for="entryNote">หมายเหตุ</label><textarea id="entryNote" name="note" maxlength="500" placeholder="กรอกหมายเหตุ (ถ้ามี)"></textarea></div>' +
     '</div><div class="form-actions"><button class="button button-primary" type="submit">ตรวจสอบและบันทึก</button><button class="button" type="reset">ล้างค่า</button></div></form></section>' : '') +
     '<div class="section-title"><div><h2>รายการบันทึกล่าสุด</h2><p>แสดงสูงสุด 8 รายการ</p></div></div>' +
     '<section class="card card-pad"><div class="list">' + (rows.length ? renderRows(rows) : '<div class="empty-state">ยังไม่มีข้อมูลสกรีน</div>') + '</div></section>' +
-    '<p class="small-muted" style="margin-top:.8rem">โหมด mock • เตรียม adapter สำหรับเชื่อมหน้า Manual ของ Package 01 ในอนาคต</p>';
+    '<p class="small-muted" style="margin-top:.8rem">ข้อมูลสกรีนเชื่อมกับ Supabase</p>';
   const form = root.querySelector("#screen-manual-form");
   form?.addEventListener("submit", async event => {
     event.preventDefault();
@@ -61,7 +61,7 @@ export async function render(root, context) {
     button.disabled = true; button.textContent = "กำลังบันทึก…";
     try {
       await screenApi.saveScreenManualEntry(values);
-      context.showToast("บันทึกงานสกรีนแล้ว (mock)", "success");
+      context.showToast("บันทึกงานสกรีนลง Supabase แล้ว", "success");
       await render(root, context);
     } catch (error) {
       context.showToast(error.message || "บันทึกไม่สำเร็จ", "error");
@@ -69,3 +69,5 @@ export async function render(root, context) {
     }
   });
 }
+
+

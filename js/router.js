@@ -1,7 +1,8 @@
-import { APP_MODE, READ_ONLY_ROUTES } from "./config.js";
-import { resolveWorkspaceRoute, canAccessModule } from "./permissions.js";
+import { APP_MODE, READ_ONLY_ROUTES } from "./config.js?v=1.3.176";
+import { resolveWorkspaceRoute, canAccessModule } from "./permissions.js?v=1.3.176";
 import { watchChanges, pageBusy, preservePageDraft, mockLiveEnabled } from './live-updates.js';
-import { showActionPopup } from '../components/action-popup.js';
+import { showActionPopup } from '../components/action-popup.js?v=1.3.176';
+import { isStatusModalOpen } from '../components/status-modal.js';
 const routes = {
   home: () => import("../pages/home/index.js"),
   attendance: () => import("../pages/attendance/index.js"),
@@ -13,7 +14,11 @@ const routes = {
   "production-record": () => import("../pages/production-record/index.js"),
   ot: () => import("../pages/ot/index.js"),
   reports: () => import("../pages/reports/index.js"),
-  admin: () => import("../pages/admin/index.js")
+  admin: () => import("../pages/admin/index.js"),
+  "admin-employees": () => import("../pages/admin/employees.js?v=1.3.176"),
+  "admin-groups": () => import("../pages/admin/groups.js?v=1.3.176"),
+  "admin-machines": () => import("../pages/admin/machines.js?v=1.3.176"),
+  "admin-item-names": () => import("../pages/admin/item-names.js?v=1.3.176")
 };
 routes.employee = routes.home;
 routes.executive = routes.home;
@@ -30,7 +35,11 @@ const access = {
   "production-record": ["employee", "executive", "admin"],
   ot: ["employee", "executive", "admin"],
   reports: ["executive", "admin"],
-  admin: ["admin"]
+  admin: ["admin"],
+  "admin-employees": ["employee", "executive", "admin"],
+  "admin-groups": ["employee", "executive", "admin"],
+  "admin-machines": ["employee", "executive", "admin"],
+  "admin-item-names": ["employee", "executive", "admin"]
 };
 let pageRoot;
 let loader;
@@ -41,12 +50,20 @@ let activeRoute = "home";
 let routeVersion = 0;
 let routeController;
 export const currentRoute = () => activeRoute;
-export function navigate(route) { location.hash = "#/" + route; }
+export function navigate(route) {
+  if (isStatusModalOpen()) return false;
+  location.hash = "#/" + route;
+  return true;
+}
 function readRoute() {
   const raw = location.hash.replace(/^#\/?/, "").split("?")[0];
   return raw;
 }
 async function renderRoute() {
+  if (isStatusModalOpen()) {
+    history.replaceState(null, "", "#/" + activeRoute);
+    return;
+  }
   showActionPopup("กำลังโหลดข้อมูล…");
   const version = ++routeVersion;
   routeController?.abort();
@@ -112,7 +129,8 @@ async function renderRoute() {
     if (version !== routeVersion || signal.aborted) return;
     routeController.abort();
     console.error("Route render failed", route, error);
-    pageRoot.innerHTML = '<section class="notice notice-danger"><strong>เปิดหน้านี้ไม่สำเร็จ</strong><div>ลองรีเฟรช หรือกลับหน้าแรก</div><a class="button button-small" href="#/home">หน้าแรก</a></section>';
+    const safeError = String(error?.message || "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char]));
+    pageRoot.innerHTML = '<section class="notice notice-danger"><strong>เปิดหน้านี้ไม่สำเร็จ</strong><div>' + safeError + '</div><div>ลองรีเฟรช หรือกลับหน้าแรก</div><a class="button button-small" href="#/home">หน้าแรก</a></section>';
     showToast("เปิดหน้าไม่สำเร็จ", "error");
   } finally {
     if (version === routeVersion) {

@@ -17,7 +17,7 @@ const employeeModules = [
   ,{ route:"ot", icon:"⏱️", title:"กรอกข้อมูล OT", hint:"บันทึกงานล่วงเวลา พร้อมรายละเอียดและรูปหลักฐาน" }
 ];
 const executiveModules = [
-  { route:"attendance", icon:"🪪", title:"เวลาเข้าออก", hint:"ดูข้อมูลเวลาพนักงานตัวอย่าง" },
+  { route:"attendance", icon:"🪪", title:"เวลาเข้าออก", hint:"ดูเวลาเข้าออกและสถานะพนักงาน" },
   { route:"work-session", icon:"▶️", title:"ข้อมูลการทำงาน", hint:"ดูงานที่พนักงานบันทึก" },
   { route:"leave", icon:"📝", title:"อนุมัติ / ปฏิเสธการลา", hint:"ตรวจคำขอและประวัติการลา" },
   { route:"calendar", icon:"📅", title:"ตั้งปฏิทินการทำงาน", hint:"กำหนดวันทำงานของแต่ละกลุ่ม" },
@@ -35,10 +35,10 @@ const adminModules = [
 
 export async function render(root, { user, signal, workspace }) {
   root.innerHTML = '<div class="page-loading"><span class="loading-spinner"></span><span>กำลังโหลดภาพรวม…</span></div>';
-  if (APP_MODE !== "mock") {
+  if (APP_MODE === "development") {
     const data = await attendanceApi.readMyAttendance({}, { signal });
     root.innerHTML = '<section class="card hero-card"><h1>สวัสดี ' + escapeHtml(user.name) +
-      '</h1><p>อ่านข้อมูลตัวอย่างผ่าน API ในเครื่อง</p></section>' +
+      '</h1><p>อ่านข้อมูลจาก API ทดสอบในเครื่อง</p></section>' +
       '<p class="notice notice-warning">LOCAL FIXTURE • ข้อมูลทดสอบ ไม่มีข้อมูล Production</p>' +
       '<div class="grid grid-2">' + statCard("เวลาเข้า",data.checkIn || "—","วันนี้") +
       statCard("เวลาออก",data.checkOut || "ยังไม่มีข้อมูล","วันนี้") + '</div>' +
@@ -53,7 +53,7 @@ export async function render(root, { user, signal, workspace }) {
   const pending = leaves.filter(item => item.status === "pending").length;
   const role = user.role === "admin" && ["employee", "executive"].includes(workspace) ? workspace : user.role;
   const title = { employee:"หน้าพนักงาน", executive:"หน้าผู้บริหาร", admin:"หน้า Admin" }[role];
-  const description = { employee:user.groups?.includes("ออฟฟิต") ? "ดูข้อมูลของฉัน ส่งคำขอลา และตรวจปฏิทินงาน" : "กรอกข้อมูลงาน การขนส่ง ข้อมูลสกรีน และขอลา",
+  const description = { employee:user.groups?.some(group => ["ออฟฟิต","ออฟฟิศ"].includes(group)) ? "ดูข้อมูลของฉัน ส่งคำขอลา และตรวจปฏิทินงาน" : "กรอกข้อมูลงาน การขนส่ง ข้อมูลสกรีน และขอลา",
     executive:"ดูข้อมูลที่พนักงานบันทึก แยกตามหมวด พร้อมจัดการลาและปฏิทิน",
     admin:"ใช้งานได้ทั้งหน้าพนักงานและผู้บริหาร พร้อมแก้ไขข้อมูลทุกหมวด" }[role];
   const modules = role === "employee" ? employeeModules : role === "executive" ? executiveModules : adminModules;
@@ -73,9 +73,11 @@ export async function render(root, { user, signal, workspace }) {
     (role === "employee" ? '<div class="grid grid-3" style="margin-top:.8rem">' +
       statCard("เวลาเข้าของฉัน", attendance.checkIn || "—", attendance.checkOut ? "ออก " + attendance.checkOut : "วันนี้") +
       (canAccessModule(user, "work-session") ? statCard("งานที่กำลังทำ", String(work.filter(item => !item.endedAt).length), active ? active.machine : "ยังไม่มีงาน") : "") +
-      statCard("คำขอลารออนุมัติ", String(pending), "ข้อมูลตัวอย่าง") +
+      statCard("คำขอลารออนุมัติ", String(pending), "รายการตามสิทธิ์บัญชี") +
     '</div>' : '') + (user.role === "admin" && role !== "admin" ? '<p><a class="button" href="#/home">กลับหน้า Admin</a></p>' : '') +
     '<div class="section-title"><div><h2>' + (role === "employee" ? "กรอกข้อมูล" : role === "executive" ? "ข้อมูลแยกตามหมวด" : "เลือกหน้าที่ต้องการใช้งาน") + '</h2></div></div>' +
     '<div class="module-grid">' + visible.map(appCard).join("") + "</div>" +
-    '<p class="small-muted" style="margin-top:1rem">ข้อมูลหน้านี้เป็น Development Mock • ไม่ได้เชื่อม Production</p>';
+    '<p class="small-muted" style="margin-top:1rem">ข้อมูลหน้าหลักอ่านจาก Supabase ตามสิทธิ์ของบัญชี</p>';
 }
+
+

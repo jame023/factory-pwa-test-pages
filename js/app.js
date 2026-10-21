@@ -1,14 +1,19 @@
 import { startCalendarNotifications } from "./notifications.js";
-import { authProvider } from "./auth.js?v=2.1.2";
+import { authProvider } from "./auth.js";
 import { renderAppHeader } from "../components/app-header.js";
-import { renderLoginScreen } from "../components/login-screen.js?v=2.1.1";
+import { renderLoginScreen } from "../components/login-screen.js";
 import { renderBottomNav } from "../components/bottom-nav.js";
-import { currentRoute, startRouter, refreshRoute } from "./router.js";
+import { currentRoute, startRouter, refreshRoute } from "./router.js?v=1.3.176";
 import { subscribeStore } from './state.js';
 import { showToast } from "../components/toast.js";
 import { registerServiceWorker, setOfflineNotice, watchConnection } from "./offline.js";
-import { APP_MODE } from "./config.js?v=2.1.1";
-import { installActionFeedback, showActionPopup } from "../components/action-popup.js";
+import { APP_MODE } from "./config.js?v=1.3.176";
+import { installActionFeedback, showActionPopup } from "../components/action-popup.js?v=1.3.176";
+// Preserve the machine-only OAuth code before the mock app/router can replace the URL.
+const machineOAuthCode = new URLSearchParams(location.search).get('code');
+if (machineOAuthCode && /^#\/admin\/(machines|item-names)(?:$|\?)/.test(location.hash)) {
+  sessionStorage.setItem('factory-pwa-machine-oauth-code-v1', machineOAuthCode);
+}
 
 let session;
 let appMounted = false;
@@ -18,49 +23,11 @@ const headerRoot = document.getElementById("header-root");
 const navRoot = document.getElementById("nav-root");
 const pageRoot = document.getElementById("page-root");
 const loadingRoot = document.getElementById("page-loading");
-const LINE_LOGIN_URL = "https://jame023.github.io/factory-pwa-test-pages/login-test.html";
 
 function renderChrome(route = currentRoute()) {
   headerRoot.innerHTML = renderAppHeader(session.user);
   navRoot.innerHTML = renderBottomNav(route);
   headerRoot.querySelector("[data-auth-logout]")?.addEventListener("click", signOut);
-}
-
-function renderAuthenticatedLanding() {
-  renderChrome();
-  navRoot.replaceChildren();
-  loadingRoot.hidden = true;
-
-  const card = document.createElement("section");
-  card.className = "card card-pad";
-  const eyebrow = document.createElement("p");
-  eyebrow.className = "eyebrow";
-  eyebrow.textContent = "ยืนยันตัวตนสำเร็จ • Test Preview";
-  const title = document.createElement("h1");
-  title.textContent = "เข้าสู่ระบบสำเร็จ";
-  const description = document.createElement("p");
-  description.textContent = "ข้อมูลด้านล่างอ่านจากบัญชีและสิทธิ์ที่ตรวจสอบผ่าน Supabase แล้ว";
-  card.append(eyebrow, title, description);
-
-  const addRow = (label, value) => {
-    const row = document.createElement("p");
-    const strong = document.createElement("strong");
-    strong.textContent = label + ": ";
-    row.append(strong, document.createTextNode(value || "—"));
-    card.append(row);
-  };
-  addRow("ชื่อพนักงาน", session.user.name);
-  addRow("LINE Display Name", session.user.lineDisplayName);
-  addRow("บทบาท", session.user.role);
-  addRow("กลุ่มงานหลัก", session.user.main_group);
-  addRow("กลุ่มงานที่ได้รับสิทธิ์", session.user.groups?.join(", "));
-  addRow("สถานะบัญชี", session.user.active === true ? "ใช้งานได้" : "ระงับ");
-
-  const note = document.createElement("p");
-  note.className = "small-muted";
-  note.textContent = "โมดูลข้อมูลการทำงานยังไม่เปิดใน Test Preview";
-  card.append(note);
-  pageRoot.replaceChildren(card);
 }
 
 function renderLogin(message = "") {
@@ -69,23 +36,14 @@ function renderLogin(message = "") {
   loadingRoot.hidden = true;
   pageRoot.innerHTML = renderLoginScreen(message);
   pageRoot.querySelector("[data-auth-login]")?.addEventListener("click", login);
-  pageRoot.querySelector("[data-auth-register]")?.addEventListener("click", register);
-}
-
-function register() {
-  showActionPopup("หน้าสมัครสมาชิกจะเปิดใน Pass ถัดไป", { tone:"info", timeout:3200 });
 }
 
 async function login(event) {
   const button = event.currentTarget;
   if (button.disabled) return;
   button.disabled = true;
-  button.textContent = "กำลังยืนยันตัวตนกับ LINE…";
-  showActionPopup("กำลังยืนยันตัวตนกับ LINE…");
-  if (APP_MODE === "mock") {
-    location.href = LINE_LOGIN_URL;
-    return;
-  }
+  button.textContent = APP_MODE === "mock" ? "กำลังเปิดบัญชีตัวอย่าง…" : "กำลังยืนยันตัวตน…";
+  showActionPopup(APP_MODE === "mock" ? "กำลังเปิดบัญชีตัวอย่าง…" : "กำลังยืนยันตัวตนกับ LINE…");
   try {
     session = await authProvider.login();
     if (!session) return; // LIFF may redirect the browser to LINE Login.
@@ -128,10 +86,6 @@ function watchMockAccount() {
 async function mountApp() {
   if (appMounted) return;
   appMounted = true;
-  if (APP_MODE === "supabase-line") {
-    renderAuthenticatedLanding();
-    return;
-  }
   renderChrome();
   stopNotifications = session.user.active===false ? undefined : startCalendarNotifications(session.user,showToast);
   watchMockAccount();
@@ -146,7 +100,7 @@ async function mountApp() {
 
 async function start() {
   installActionFeedback();
-  await registerServiceWorker();
+  if (APP_MODE === "mock") await registerServiceWorker();
   setOfflineNotice(message => showToast(message, "error"));
   watchConnection();
   showActionPopup("กำลังตรวจสอบสถานะบัญชี…");
