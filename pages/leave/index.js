@@ -1,6 +1,6 @@
 import { renderLeaveMedia } from "../../js/leave-media.js?v=1.3.184";
-import * as api from "../../adapters/package09.js?v=1.3.184";
-import * as adminApi from "../../adapters/package11.js?v=1.3.184";
+import * as api from "../../adapters/package09.js?v=1.3.185";
+import * as adminApi from "../../adapters/package11.js?v=1.3.185";
 import { enumerateLeaveDates, storedLeaveItems, isLeaveSubmissionOpen, LEAVE_WINDOW_MESSAGE } from "../../js/leave-rules.js?v=1.3.184";
 import { mountApprovedLeaveCalendar } from "./approved-calendar.js?v=1.3.184";
 import { escapeHtml as e, thaiDate, statusText, bangkokToday } from "../../js/utils.js?v=1.3.184";
@@ -52,20 +52,21 @@ export async function render(root, context) {
   try {
     [rows,notices,employeeDirectory] = await Promise.all([
       api.listLeaveRequests(), api.readLeaveNoticeHistory(),
-      context.user.role === "admin" ? adminApi.listRecords("employees") : Promise.resolve([])
+      context.user.role === "admin" && context.workspace !== "employee" ? adminApi.listRecords("employees") : Promise.resolve([])
     ]);
   }
   catch(error) { root.innerHTML='<p role="alert">อ่านคำขอลาไม่สำเร็จ กรุณาเปิดหน้าใหม่</p>'; context.showToast(error.message,"error"); return; }
   if (context.signal?.aborted) return;
-  const manage = canManage(context.user.role);
+  const manage = canManage(context.user.role) && context.workspace !== "employee";
+  if (context.workspace === "employee") rows = rows.filter(row => row.employeeId === context.user.id);
   const details = item =>
     '<div class="leave-request-heading"><h3>'+e(item.employee)+'</h3><span class="leave-type">'+e(item.type)+'</span></div>'+
     '<div class="leave-dates"><span class="leave-detail-label">วันที่และช่วงเวลาที่ขอลา</span>'+storedLeaveItems(item).map(day=>
       '<div class="leave-date-row"><strong>'+e(thaiDate(day.date))+'</strong><span>'+e(day.label)+'</span></div>').join('')+'</div>'+
     '<div class="leave-reason"><span class="leave-detail-label">เหตุผลการลา</span><p>'+e(item.reason || '—')+'</p></div>'+
-    '<p class="leave-attachments">รูปแนบจำลอง: '+(item.attachments?.length || 0)+' รูป</p>';
+    '<p class="leave-attachments">รูปแนบ: '+(item.attachments?.length || 0)+' รูป</p>';
 
-  const employeeForm = context.user.role === "employee" ? `
+  const employeeForm = (context.user.role === "employee" || (context.user.role === "admin" && context.workspace === "employee")) ? `
     <section class="card form-card leave-form-card">
       <div class="ot-form-intro"><span class="ot-form-icon" aria-hidden="true">✎</span><div>
         <h2>ส่งคำขอลา</h2><p>เลือกวันที่และช่วงเวลาที่ต้องการลา พร้อมระบุเหตุผล</p>
@@ -101,8 +102,8 @@ export async function render(root, context) {
         <button class="button button-primary leave-submit" type="submit">ส่งคำขอ</button>
       </form>
     </section>` : "";
-  root.innerHTML = '<div class="page-heading"><h1>'+(manage?'จัดการการลา':'ขอลา')+'</h1></div><p class="notice">Mock เท่านั้น • แจ้งเตือนภายในเบราว์เซอร์นี้ ยังไม่ส่งถึงอุปกรณ์จริง</p>'+
-    (context.user.role === "admin" ? '<section class="card card-pad attendance-section"><h2>สร้างคำขอลาแทนพนักงาน</h2><p class="help-text">คำขอจะถูกส่งเป็นสถานะรออนุมัติ และแจ้งผู้บริหารตามกฎเดิมของการลา โดยต้องระบุเหตุผลของ Admin</p><form id="admin-proxy-leave-form"><div class="form-grid"><label class="field field-full">พนักงาน<select name="employee" required><option value="">เลือกพนักงาน</option>'+employeeDirectory.filter(item=>item.active!==false).map(item=>'<option value="'+e(item.name)+'">'+e(item.name)+' • '+e(item.group || '')+'</option>').join('')+'</select></label><label class="field">ประเภทลา<select name="type" required><option>ลากิจ</option><option>ลาป่วย</option></select></label><label class="field">ช่วงเวลา<select name="period" required><option>เต็มวัน</option><option>ครึ่งวันเช้า</option><option>ครึ่งวันบ่าย</option></select></label><label class="field">วันเริ่มลา<input name="startDate" type="date" required></label><label class="field">วันสิ้นสุดลา<input name="endDate" type="date" required></label><label class="field field-full">เหตุผลการลา<textarea name="reason" required maxlength="500"></textarea></label><label class="field field-full">เหตุผลการทำรายการแทน<textarea name="proxyReason" required minlength="3" maxlength="300"></textarea></label></div><button class="button button-primary" type="submit">ส่งคำขอลาแทน</button></form></section>' : '') +
+  root.innerHTML = '<div class="page-heading"><h1>'+(manage?'จัดการการลา':'ขอลา')+'</h1></div><p class="notice">คำขออ่านและบันทึกใน Supabase • การแจ้งเตือนถึงอุปกรณ์ยังไม่เปิดใช้งาน</p>'+
+    (context.user.role === "admin" && manage ? '<section class="card card-pad attendance-section"><h2>สร้างคำขอลาแทนพนักงาน</h2><p class="help-text">คำขอจะถูกส่งเป็นสถานะรออนุมัติ และแจ้งผู้บริหารตามกฎเดิมของการลา โดยต้องระบุเหตุผลของ Admin</p><form id="admin-proxy-leave-form"><div class="form-grid"><label class="field field-full">พนักงาน<select name="employee" required><option value="">เลือกพนักงาน</option>'+employeeDirectory.filter(item=>item.active!==false).map(item=>'<option value="'+e(item.name)+'">'+e(item.name)+' • '+e(item.group || '')+'</option>').join('')+'</select></label><label class="field">ประเภทลา<select name="type" required><option>ลากิจ</option><option>ลาป่วย</option></select></label><label class="field">ช่วงเวลา<select name="period" required><option>เต็มวัน</option><option>ครึ่งวันเช้า</option><option>ครึ่งวันบ่าย</option></select></label><label class="field">วันเริ่มลา<input name="startDate" type="date" required></label><label class="field">วันสิ้นสุดลา<input name="endDate" type="date" required></label><label class="field field-full">เหตุผลการลา<textarea name="reason" required maxlength="500"></textarea></label><label class="field field-full">เหตุผลการทำรายการแทน<textarea name="proxyReason" required minlength="3" maxlength="300"></textarea></label></div><button class="button button-primary" type="submit">ส่งคำขอลาแทน</button></form></section>' : '') +
     employeeForm+
     (manage ? '<section class="card card-pad attendance-section"><h2>รออนุมัติ</h2>'+ (rows.filter(row=>row.status==='pending').map(item=>'<article class="card card-pad attendance-section leave-request" data-request="'+e(item.id)+'">'+details(item)+'<label class="field">เหตุผลปฏิเสธ (กรอกเมื่อไม่อนุมัติ)<textarea data-rejection maxlength="500" placeholder="ระบุเหตุผลให้ผู้ขอลาทราบ"></textarea></label><div class="form-actions leave-decision-actions"><button class="button button-primary" data-decision="approved">อนุมัติ</button><button class="button button-danger" data-decision="rejected">ปฏิเสธ</button></div></article>').join('') || '<p>ไม่มีคำขอรออนุมัติ</p>')+'</section>' : '')+
     '<section class="card card-pad attendance-section" data-leave-calendar></section>'+

@@ -1,4 +1,4 @@
-import * as reportApi from "../../adapters/package06.js?v=1.3.184";
+import * as reportApi from "../../adapters/package06.js?v=1.3.185";
 import { statCard } from "../../components/app-card.js?v=1.3.184";
 import { escapeHtml } from "../../js/utils.js?v=1.3.184";
 

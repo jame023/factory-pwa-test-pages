@@ -1,6 +1,6 @@
 import { subscribeStore } from "../../js/state.js?v=1.3.184";
 import { APP_MODE } from "../../js/config.js?v=1.3.184";
-import { readAttendanceDashboard } from "../../adapters/package03.js?v=1.3.184";
+import { readAttendanceDashboard } from "../../adapters/package03.js?v=1.3.185";
 import { statCard, attendanceToneClass } from "../../components/app-card.js?v=1.3.184";
 import { bangkokToday, escapeHtml, thaiDate } from "../../js/utils.js?v=1.3.184";
 

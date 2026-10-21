@@ -1,4 +1,4 @@
-import * as screenApi from "../../adapters/package01.js?v=1.3.184";
+import * as screenApi from "../../adapters/package01.js?v=1.3.185";
 import { statCard } from "../../components/app-card.js?v=1.3.184";
 import { bangkokToday, escapeHtml, thaiDate, thaiDateTime } from "../../js/utils.js?v=1.3.184";
 import { requireOnlineAction } from "../../js/offline.js?v=1.3.184";
@@ -24,7 +24,7 @@ export async function render(root, context) {
   }
   root.innerHTML = '<div class="page-loading"><span class="loading-spinner"></span><span>กำลังโหลดข้อมูลสกรีน…</span></div>';
   const rows = await screenApi.readScreenManualEntries();
-  const canCreate = isScreenEmployee(context.user);
+  const canCreate = isScreenEmployee(context.user) || (context.user.role === "admin" && context.workspace === "employee");
   const totalPack = rows.reduce((sum, row) => sum + Number(row.enteredPack || 0), 0);
   const screenDefects = rows.reduce((sum, row) => sum + Number(row.missingBottles || 0), 0);
   const productionDefects = rows.reduce((sum, row) => sum + Number(row.productionDamagedBottles || 0), 0);

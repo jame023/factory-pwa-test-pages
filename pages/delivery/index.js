@@ -1,5 +1,5 @@
 import { APP_MODE } from "../../js/config.js?v=1.3.184";
-import * as deliveryApi from "../../adapters/package04.js?v=1.3.184";
+import * as deliveryApi from "../../adapters/package04.js?v=1.3.185";
 import { escapeHtml, localDateTimeValue, thaiDateTime } from "../../js/utils.js?v=1.3.184";
 import { requireOnlineAction } from "../../js/offline.js?v=1.3.184";
 import { canEnterData } from "../../js/permissions.js?v=1.3.184";

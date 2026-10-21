@@ -1,4 +1,4 @@
-import * as workApi from "../../adapters/package07.js?v=1.3.184";
+import * as workApi from "../../adapters/package07.js?v=1.3.185";
 import { escapeHtml as e, bangkokToday, thaiDateTime } from "../../js/utils.js?v=1.3.184";
 import { requireOnlineAction } from "../../js/offline.js?v=1.3.184";
 
@@ -43,10 +43,10 @@ async function compressImage(file,targetBytes) {
 }
 
 export async function render(root, context) {
-  const manager=["executive","admin"].includes(context.user.role);
+  const manager=["executive","admin"].includes(context.user.role) && context.workspace !== "employee";
   let rows=[], selectedFiles=[], previewUrls=[];
   const clearPreviewUrls=()=>{previewUrls.forEach(url=>URL.revokeObjectURL(url));previewUrls=[];};
-  const listPhotos=row=>Array.isArray(row.photos)&&row.photos.length?row.photos:(row.photo?[row.photo]:[]);
+  const listPhotos=row=>Array.isArray(row.images)&&row.images.length?row.images:Array.isArray(row.photos)&&row.photos.length?row.photos:(row.photo?[row.photo]:[]);
   const draw=()=>{
     root.querySelector("[data-ot-list]").innerHTML=rows.map(row=>{
       const photos=listPhotos(row);

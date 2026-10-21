@@ -1,3 +1,4 @@
+import { validateLeaveSubmission, storedLeaveItems } from './leave-rules.js?v=1.3.184';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1.3.184';
 
 import { RECORD_SCHEMAS, validateRecord } from './record-schema.js?v=1.3.184';
@@ -49,7 +50,7 @@ function normalizeImages(images) {
     return images.map(image => {
       if (!image || typeof image !== 'object' || typeof image.dataUrl !== 'string' ||
           !/^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/]+=*$/.test(image.dataUrl) ||
-          image.dataUrl.length > 720000) throw fail('รูปแนบไม่ถูกต้องหรือมีขนาดใหญ่เกินกำหนด','VALIDATION_ERROR');
+          image.dataUrl.length > 1450000) throw fail('รูปแนบไม่ถูกต้องหรือมีขนาดใหญ่เกินกำหนด','VALIDATION_ERROR');
       const mimeType = image.dataUrl.slice(5,image.dataUrl.indexOf(';'));
       const bytes = Math.floor((image.dataUrl.length - image.dataUrl.indexOf(',') - 1) * 3 / 4);
       total += bytes;
@@ -73,7 +74,14 @@ function normalizeImages(images) {
   }
   async function insert(category, values, groupName=null, ownerId=null) {
     const id = await userId();
-const normalized = validateRecord(category, values);
+const normalized = category === 'leaveRequests' && Array.isArray(values.leaveItems)
+      ? {...validateRecord(category,{...values,period:'เต็มวัน'}),period:values.period,leaveItems:values.leaveItems,totalDays:values.totalDays,attachments:values.attachments,hasMedicalCertificate:values.hasMedicalCertificate}
+      : validateRecord(category, category === 'otRequests' ? {...values,photo:''} : values);
+    if (category === 'deliveries') {
+      const bill = String(values.billNumber || '').trim().toUpperCase();
+      if (!/^SD[0-9]{9}$/.test(bill)) throw fail('เลขที่บิลต้องเป็น SD ตามด้วยตัวเลข 9 หลัก','VALIDATION_ERROR');
+      normalized.billNumber = bill;
+    }
     if (category === 'otRequests' || category === 'leaveRequests' || category === 'deliveries') normalized.images = normalizeImages(values.images || values.photos || []);
     const row = { category, owner_id:ownerId || id, group_name:canonical(groupName || GROUP_BY_CATEGORY[category] || null), payload:normalized, created_by:id, updated_by:id };
     const data = await call('/rest/v1/factory_records?select=*',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(row)});
@@ -118,7 +126,12 @@ const normalized = validateRecord(category, values);
     if (module==='package07' && action==='ot.read') return rows('otRequests');
     if (module==='package07' && action==='ot.submit') return insert('otRequests',{...p,employee:await currentName()});
     if (module==='package09' && action==='leave.read') return rows('leaveRequests');
-    if (module==='package09' && action==='leave.submit') return insert('leaveRequests',{...p,employee:await currentName(),status:'pending'},await currentGroup());
+    if (module==='package09' && action==='leave.submit') {
+      const id=await userId(), group=await currentGroup(), uiGroup=group==='ออฟฟิศ'?'ออฟฟิต':group;
+      const [history,calendar]=await Promise.all([rows('leaveRequests'),rows('calendar',{group_name:`eq.${group}`})]);
+      const values=validateLeaveSubmission(p,{id,primaryWorkGroup:uiGroup,calendarGroups:[uiGroup]},history,calendar.map(row=>({...row,group:uiGroup})));
+      return insert('leaveRequests',{...values,employee:await currentName(),images:p.images||[]},group);
+    }
     if (module==='package09' && action==='leave.review') {
       const actor=await userId(); const raw=await call('/rest/v1/factory_records?select=id,owner_id,group_name,payload,created_at,updated_at&id=eq.'+encodeURIComponent(p.id)+'&category=eq.leaveRequests');
       const row=raw?.[0] ? rowMap(raw[0]) : null; const old=raw?.[0]?.payload; if(!row || old?.status!=='pending') throw fail('ไม่พบคำขอรอพิจารณา','NOT_FOUND');
@@ -135,7 +148,7 @@ const normalized = validateRecord(category, values);
     }
     if (module==='package08' && action==='calendar.read') {
       const filters={}; if(p.group) filters.group_name=`eq.${canonical(p.group)}`;
-      const result=await rows('calendar',filters); const memberships=await call('/rest/v1/employee_groups?select=group_name,employee_id,active&active=eq.true'); const id=await userId(); const groups=[...new Set((claims.app_metadata.role==='admin' ? memberships : memberships.filter(r=>r.employee_id===id)).map(r=>canonical(r.group_name)))]; return {groups,month:p.month,entries:result.filter(r=>r.date?.startsWith(p.month))};
+      const result=await rows('calendar',filters); const memberships=await call('/rest/v1/employee_groups?select=group_name,employee_id,active&active=eq.true'); const id=await userId(); const groups=[...new Set((claims.app_metadata.role==='admin' ? memberships : memberships.filter(r=>r.employee_id===id)).map(r=>canonical(r.group_name)))].filter(g=>['ผลิต','สกรีน','ขนส่ง','ออฟฟิศ'].includes(g)); const leaves=await rows('leaveRequests',{'payload->>status':'eq.approved'}); const approvedLeaves=leaves.flatMap(row=>storedLeaveItems(row).map(day=>({date:day.date,employee:row.employee,period:day.label,group:row.group}))).filter(day=>day.date.startsWith(p.month)); return {groups,month:p.month,entries:result.filter(r=>r.date?.startsWith(p.month)),approvedLeaves};
     }
     if (module==='package08' && action==='calendar.save') {
       const [existing]=await rows('calendar',{group_name:`eq.${canonical(p.group)}`, 'payload->>date':`eq.${p.date}`});

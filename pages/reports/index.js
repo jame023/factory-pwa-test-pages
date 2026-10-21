@@ -1,4 +1,4 @@
-import * as api from '../../adapters/package06.js?v=1.3.184';
+import * as api from '../../adapters/package06.js?v=1.3.185';
 import { statCard } from '../../components/app-card.js?v=1.3.184';
 import { escapeHtml as e } from '../../js/utils.js?v=1.3.184';
 

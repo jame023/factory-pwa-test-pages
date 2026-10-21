@@ -1,4 +1,4 @@
-import * as calendarApi from "../../adapters/package08.js?v=1.3.184";
+import * as calendarApi from "../../adapters/package08.js?v=1.3.185";
 import { watchChanges, mockLiveEnabled } from "../../js/live-updates.js?v=1.3.184";
 import { bangkokToday, escapeHtml, thaiDate } from "../../js/utils.js?v=1.3.184";
 

@@ -1,4 +1,4 @@
-import { request } from "../js/api.js?v=1.3.184";
+import { request } from "../js/api.js?v=1.3.185";
 import { normalizeAttendanceQuery } from "../js/attendance-contract.js?v=1.3.184";
 export const readMyAttendance = (query = {}, options = {}) =>
   request("package10", "attendance.read", normalizeAttendanceQuery(query), options);

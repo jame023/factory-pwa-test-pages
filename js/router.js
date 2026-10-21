@@ -4,21 +4,21 @@ import { watchChanges, pageBusy, preservePageDraft, mockLiveEnabled } from './li
 import { showActionPopup } from '../components/action-popup.js?v=1.3.184';
 import { isStatusModalOpen } from '../components/status-modal.js?v=1.3.184';
 const routes = {
-  home: () => import("../pages/home/index.js?v=1.3.184"),
-  attendance: () => import("../pages/attendance/index.js?v=1.3.184"),
-  "work-session": () => import("../pages/work-session/index.js?v=1.3.184"),
-  leave: () => import("../pages/leave/index.js?v=1.3.184"),
-  calendar: () => import("../pages/calendar/index.js?v=1.3.184"),
-  delivery: () => import("../pages/delivery/index.js?v=1.3.184"),
-  production: () => import("../pages/production/index.js?v=1.3.184"),
-  "production-record": () => import("../pages/production-record/index.js?v=1.3.184"),
-  ot: () => import("../pages/ot/index.js?v=1.3.184"),
-  reports: () => import("../pages/reports/index.js?v=1.3.184"),
-  admin: () => import("../pages/admin/index.js?v=1.3.184"),
-  "admin-employees": () => import("../pages/admin/employees.js?v=1.3.184"),
-  "admin-groups": () => import("../pages/admin/groups.js?v=1.3.184"),
-  "admin-machines": () => import("../pages/admin/machines.js?v=1.3.184"),
-  "admin-item-names": () => import("../pages/admin/item-names.js?v=1.3.184")
+  home: () => import("../pages/home/index.js?v=1.3.185"),
+  attendance: () => import("../pages/attendance/index.js?v=1.3.185"),
+  "work-session": () => import("../pages/work-session/index.js?v=1.3.185"),
+  leave: () => import("../pages/leave/index.js?v=1.3.185"),
+  calendar: () => import("../pages/calendar/index.js?v=1.3.185"),
+  delivery: () => import("../pages/delivery/index.js?v=1.3.185"),
+  production: () => import("../pages/production/index.js?v=1.3.185"),
+  "production-record": () => import("../pages/production-record/index.js?v=1.3.185"),
+  ot: () => import("../pages/ot/index.js?v=1.3.185"),
+  reports: () => import("../pages/reports/index.js?v=1.3.185"),
+  admin: () => import("../pages/admin/index.js?v=1.3.185"),
+  "admin-employees": () => import("../pages/admin/employees.js?v=1.3.185"),
+  "admin-groups": () => import("../pages/admin/groups.js?v=1.3.185"),
+  "admin-machines": () => import("../pages/admin/machines.js?v=1.3.185"),
+  "admin-item-names": () => import("../pages/admin/item-names.js?v=1.3.185")
 };
 routes.employee = routes.home;
 routes.executive = routes.home;

@@ -1,8 +1,8 @@
 import { listActiveItemNames, requireActiveItemName } from '../../js/active-item-names.js?v=1.3.184';
 import { loginToMachineAdmin } from '../../js/machine-admin-auth.js?v=1.3.184';
 import { renderWorkManager } from "./manager.js?v=1.3.184";
-import * as workApi from "../../adapters/package07.js?v=1.3.184";
-import * as screenApi from "../../adapters/package01.js?v=1.3.184";
+import * as workApi from "../../adapters/package07.js?v=1.3.185";
+import * as screenApi from "../../adapters/package01.js?v=1.3.185";
 import { render as renderProductionRecord } from "../production-record/index.js?v=1.3.184";
 import { bangkokToday, escapeHtml, shortTime, thaiDate, thaiDateTime } from "../../js/utils.js?v=1.3.184";
 import { statCard } from "../../components/app-card.js?v=1.3.184";

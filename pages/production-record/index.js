@@ -1,4 +1,4 @@
-import * as api from '../../adapters/package05.js?v=1.3.184';
+import * as api from '../../adapters/package05.js?v=1.3.185';
 import {isProductionEmployee, PRODUCTION_WORK_MACHINES} from '../../js/permissions.js?v=1.3.184';
 import {bangkokToday, escapeHtml as e, thaiDate} from '../../js/utils.js?v=1.3.184';
 import {requireOnlineAction} from '../../js/offline.js?v=1.3.184';
@@ -12,7 +12,7 @@ export async function render(root, context, {embedded=false} = {}) {
   root.innerHTML='<p class="page-loading">กำลังโหลดข้อมูลผลิต…</p>';
   const rows=await api.listProduction();
   if(context.signal?.aborted)return;
-  const create=isProductionEmployee(context.user);
+  const create=isProductionEmployee(context.user) || (context.user.role === "admin" && context.workspace === "employee");
   const total=rows.reduce((sum,row)=>sum+Number(row.quantity||0),0);
   const defective=rows.reduce((sum,row)=>sum+Number(row.defective||0),0);
   root.innerHTML=(embedded?'<div class="section-title"><div><h2>บันทึกข้อมูลผลิต</h2><p>ใส่ยอดรายวันแยกจากจำนวนตอนจบงาน</p></div></div>':'<div class="page-heading"><h1>'+ (create?'บันทึกข้อมูลผลิต':'ข้อมูลผลิต') +'</h1></div>')+
