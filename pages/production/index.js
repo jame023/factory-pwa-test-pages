@@ -18,9 +18,9 @@ const renderRows = rows => [...rows].sort((a,b) => String(b.createdAt || "").loc
 }).join("");
 
 export async function render(root, context) {
-  if (context.user.role === "employee" && context.workspace === "employee" && isScreenEmployee(context.user)) {
-    location.hash = "#/employee/work-session";
-    return;
+  if (context.workspace === "employee" && ["employee","admin"].includes(context.user.role)) {
+    const work = await import('../work-session/index.js?v=1.3.187');
+    return work.render(root,{...context,workType:'สกรีน'});
   }
   root.innerHTML = '<div class="page-loading"><span class="loading-spinner"></span><span>กำลังโหลดข้อมูลสกรีน…</span></div>';
   const rows = await screenApi.readScreenManualEntries();

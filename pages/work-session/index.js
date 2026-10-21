@@ -3,7 +3,7 @@ import { loginToMachineAdmin } from '../../js/machine-admin-auth.js?v=1.3.186';
 import { renderWorkManager } from "./manager.js?v=1.3.186";
 import * as workApi from "../../adapters/package07.js?v=1.3.186";
 import * as screenApi from "../../adapters/package01.js?v=1.3.186";
-import { render as renderProductionRecord } from "../production-record/index.js?v=1.3.186";
+import { render as renderProductionRecord } from "../production-record/index.js?v=1.3.187";
 import { bangkokToday, escapeHtml, shortTime, thaiDate, thaiDateTime } from "../../js/utils.js?v=1.3.186";
 import { statCard } from "../../components/app-card.js?v=1.3.186";
 import { requireOnlineAction } from "../../js/offline.js?v=1.3.186";
@@ -28,8 +28,8 @@ export async function render(root, context) {
   root.innerHTML = '<div class="page-loading"><span class="loading-spinner"></span><span>กำลังโหลดงาน…</span></div>';
   const rows = await workApi.listWorkSessions();
   const canCreate = canEnterData(context.user.role);
-  const productionOnly = isProductionEmployee(context.user);
-  const screenOnly = isScreenEmployee(context.user);
+  const screenOnly = context.workType === 'สกรีน' || (!context.workType && isScreenEmployee(context.user));
+  const productionOnly = !screenOnly && (context.workType === 'ผลิต' || isProductionEmployee(context.user) || (context.user.role === 'admin' && context.workspace === 'employee'));
   const machines = productionOnly ? PRODUCTION_WORK_MACHINES : screenOnly ? SCREEN_WORK_MACHINES : WORK_MACHINES;
   const active = rows.find(item => item.employeeId === context.user.id && !item.endedAt);
   let itemNames = [], itemNameError = '';
@@ -61,7 +61,7 @@ export async function render(root, context) {
         '<div class="field" id="order-field" hidden><label for="orderName">ชื่อรายการ</label><select id="orderName" name="orderName" disabled><option value="">เลือกชื่อรายการ</option>' + itemNames.map(item => '<option value="' + escapeHtml(item.item_name) + '" data-item-id="' + escapeHtml(item.id) + '">' + escapeHtml(item.item_name) + '</option>').join('') + '</select><p class="help-text">' + (itemNameError ? escapeHtml(itemNameError) : 'แสดงเฉพาะชื่อที่เปิดใช้งาน') + '</p>' + (itemNameError ? '<button class="button button-small" type="button" data-item-catalog-login>เข้าสู่ระบบ LINE / โหลดรายการใหม่</button>' : '') + '</div>' +
         '<div class="field field-full"><label for="workNote">หมายเหตุ</label><textarea id="workNote" name="note" maxlength="300" placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"></textarea></div>' +
         '</div><div class="form-actions"><button class="button button-primary" type="submit">▶️ เริ่มงาน</button></div></form></section>') : '') +
-    (screenOnly && !active ? '<div class="section-title"><div><h2>บันทึกยอดสกรีน</h2><p>ใส่ยอดรายวันแยกจากปุ่มเริ่ม–จบงาน</p></div></div>' +
+    (screenOnly ? '<div class="section-title"><div><h2>บันทึกยอดสกรีน</h2><p>ใส่ยอดรายวันแยกจากปุ่มเริ่ม–จบงาน</p></div></div>' +
       '<div class="grid grid-3 attendance-section">' + statCard("จำนวนแพ็ค", String(screenTotals.packs), "ยอดสะสมตามสิทธิ์") +
       statCard("เสียจากสกรีน", String(screenTotals.screenDefects), "ยอดสะสมตามสิทธิ์") +
       statCard("เสียจากผลิต", String(screenTotals.productionDefects), "ยอดสะสมตามสิทธิ์") + '</div>' +
@@ -75,7 +75,7 @@ export async function render(root, context) {
       '<div class="field field-full"><label for="screen-note">หมายเหตุ</label><textarea id="screen-note" name="note" maxlength="500" placeholder="กรอกหมายเหตุ (ถ้ามี)"></textarea></div>' +
       '</div><div class="form-actions"><button class="button button-primary" type="submit">บันทึกข้อมูลสกรีน</button></div></form></section>' +
       '<section class="card card-pad" style="margin-top:.8rem"><div class="section-title"><div><h2>รายการสกรีนล่าสุด</h2><p>แสดงสูงสุด 8 รายการ</p></div></div><div class="list">' + (screenEntries.length ? screenRows(screenEntries) : '<div class="empty-state">ยังไม่มีข้อมูลสกรีน</div>') + '</div></section>' : '') +
-    (productionOnly && !active ? '<div data-production-record></div>' : '') +
+    (productionOnly ? '<div data-production-record></div>' : '') +
     '<div class="section-title"><div><h2>ประวัติงาน</h2><p>ประวัติงานตามสิทธิ์บัญชี</p></div></div>' +
     '<section class="card card-pad"><div class="list">' + (rows.length ? rows.map(item =>
       '<article class="list-row"><div class="list-main"><div class="list-title">' + escapeHtml(item.machine) + " · " + escapeHtml(item.workType) +
@@ -87,7 +87,7 @@ export async function render(root, context) {
     ).join("") : '<div class="empty-state">ยังไม่มีประวัติงาน เริ่มงานเพื่อดูรายการที่นี่</div>') + "</div></section>" +
     '<p class="small-muted" style="margin-top:.8rem">ออฟไลน์จะไม่บันทึกหรือเข้าคิวรายการ</p>';
 
-  if (productionOnly && !active) await renderProductionRecord(root.querySelector("[data-production-record]"), context, {embedded:true});
+  if (productionOnly) await renderProductionRecord(root.querySelector("[data-production-record]"), context, {embedded:true});
 
   root.querySelector('[data-item-catalog-login]')?.addEventListener('click', () => loginToMachineAdmin().catch(error => context.showToast(error.message, 'error')));
   const form = root.querySelector("#work-form");

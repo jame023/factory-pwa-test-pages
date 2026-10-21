@@ -5,9 +5,9 @@ import {requireOnlineAction} from '../../js/offline.js?v=1.3.186';
 import {statCard} from '../../components/app-card.js?v=1.3.186';
 
 export async function render(root, context, {embedded=false} = {}) {
-  if(!embedded && context.user.role==='employee' && context.workspace==='employee' && isProductionEmployee(context.user)){
-    location.hash='#/employee/work-session';
-    return;
+  if(!embedded && context.workspace==='employee' && ['employee','admin'].includes(context.user.role)){
+    const work=await import('../work-session/index.js?v=1.3.187');
+    return work.render(root,{...context,workType:'ผลิต'});
   }
   root.innerHTML='<p class="page-loading">กำลังโหลดข้อมูลผลิต…</p>';
   const rows=await api.listProduction();

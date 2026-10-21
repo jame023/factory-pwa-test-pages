@@ -4,14 +4,14 @@ import { watchChanges, pageBusy, preservePageDraft, mockLiveEnabled } from './li
 import { showActionPopup } from '../components/action-popup.js?v=1.3.186';
 import { isStatusModalOpen } from '../components/status-modal.js?v=1.3.186';
 const routes = {
-  home: () => import("../pages/home/index.js?v=1.3.186"),
+  home: () => import("../pages/home/index.js?v=1.3.187"),
   attendance: () => import("../pages/attendance/index.js?v=1.3.186"),
-  "work-session": () => import("../pages/work-session/index.js?v=1.3.186"),
+  "work-session": () => import("../pages/work-session/index.js?v=1.3.187"),
   leave: () => import("../pages/leave/index.js?v=1.3.186"),
   calendar: () => import("../pages/calendar/index.js?v=1.3.186"),
   delivery: () => import("../pages/delivery/index.js?v=1.3.186"),
-  production: () => import("../pages/production/index.js?v=1.3.186"),
-  "production-record": () => import("../pages/production-record/index.js?v=1.3.186"),
+  production: () => import("../pages/production/index.js?v=1.3.187"),
+  "production-record": () => import("../pages/production-record/index.js?v=1.3.187"),
   ot: () => import("../pages/ot/index.js?v=1.3.186"),
   reports: () => import("../pages/reports/index.js?v=1.3.186"),
   admin: () => import("../pages/admin/index.js?v=1.3.186"),

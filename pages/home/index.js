@@ -12,8 +12,8 @@ const employeeModules = [
   { route:"leave", icon:"📝", title:"ขอลา", hint:"ส่งคำขอและติดตามสถานะ" },
   { route:"calendar", icon:"📅", title:"ปฏิทินงาน", hint:"ดูวันที่ทำงานตามกลุ่ม" },
   { route:"delivery", icon:"🚚", title:"บันทึกการขนส่ง", hint:"เลือกสินค้าและบันทึกจำนวน" },
-  { route:"production", icon:"🖨️", title:"งานสกรีน", hint:"บันทึกจำนวนแพ็คและยอดเสียของเครื่องสกรีน" },
-  { route:"production-record", icon:"🏭", title:"บันทึกข้อมูลผลิต", hint:"บันทึกจำนวนผลิตและของเสีย" }
+  { route:"production", icon:"🖨️", title:"งานสกรีน", hint:"เริ่มงาน–จบงาน และบันทึกยอดสกรีนในหน้าเดียว" },
+  { route:"production-record", icon:"🏭", title:"บันทึกข้อมูลผลิต", hint:"เริ่มงาน–จบงาน และบันทึกยอดผลิตในหน้าเดียว" }
   ,{ route:"ot", icon:"⏱️", title:"กรอกข้อมูล OT", hint:"บันทึกงานล่วงเวลา พร้อมรายละเอียดและรูปหลักฐาน" }
 ];
 const executiveModules = [
