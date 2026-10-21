@@ -1,4 +1,4 @@
-const CACHE_NAME = "factory-pwa-shell-v1.3.181";
+const CACHE_NAME = "factory-pwa-shell-v1.3.182";
 const APP_SHELL = [
   "./pages/production-record/index.js",
   "./pages/ot/index.js",
