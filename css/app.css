@@ -710,22 +710,23 @@ a:focus-visible, button:focus-visible, .leave-page .button:focus-visible {
 }
 
 /* Login actions: equal touch targets with clear primary/secondary emphasis. */
-.login-screen > .button,
+.login-screen .button,
 .login-screen .login-submit {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 60px;
-  padding: .75rem 1rem;
+  min-height: 64px;
+  height: 64px;
+  padding: .4rem 1rem;
   border-radius: 14px;
   font-size: 1rem;
   font-weight: 700;
-  line-height: 1.4;
+  line-height: 1.2;
   text-align: center;
   transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease;
 }
-.login-screen > .button + .button { margin-top: 12px; }
+.login-screen .button + .button { margin-top: 12px; }
 .login-screen .login-submit {
   color: #fff;
   background: #087f43;
@@ -733,7 +734,7 @@ a:focus-visible, button:focus-visible, .leave-page .button:focus-visible {
   box-shadow: 0 4px 12px rgba(8, 127, 67, .16);
 }
 .login-screen .login-submit:hover:not(:disabled) { background: #066636; border-color: #066636; }
-.login-screen > .button:not(.login-submit) { color: #174b68; background: #edf6fb; border: 1px solid #b9d5e5; box-shadow: none; }
-.login-screen > .button:not(.login-submit):hover:not(:disabled) { background: #dfedf6; border-color: #83b5d0; }
-.login-screen > .button:focus-visible { outline: 3px solid #006b96; outline-offset: 4px; }
-@media (prefers-reduced-motion: reduce) { .login-screen > .button { transition: none; } }
+.login-screen .button:not(.login-submit) { color: #174b68; background: #edf6fb; border: 1px solid #b9d5e5; box-shadow: none; }
+.login-screen .button:not(.login-submit):hover:not(:disabled) { background: #dfedf6; border-color: #83b5d0; }
+.login-screen .button:focus-visible { outline: 3px solid #006b96; outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) { .login-screen .button { transition: none; } }
