@@ -57,7 +57,8 @@ export async function render(root, { user, signal, workspace }) {
     executive:"ดูข้อมูลที่พนักงานบันทึก แยกตามหมวด พร้อมจัดการลาและปฏิทิน",
     admin:"ใช้งานได้ทั้งหน้าพนักงานและผู้บริหาร พร้อมแก้ไขข้อมูลทุกหมวด" }[role];
   const modules = role === "employee" ? employeeModules : role === "executive" ? executiveModules : adminModules;
-  const visible = modules.filter(item => !(role === "employee" && ((isScreenEmployee(user) && item.route === "production") || (isProductionEmployee(user) && item.route === "production-record"))) && canAccessModule(user, item.route)).map(item => ({
+  const splitWorkflows = isScreenEmployee(user) && isProductionEmployee(user);
+  const visible = modules.filter(item => !(role === "employee" && ((splitWorkflows && item.route === "work-session") || (!splitWorkflows && isScreenEmployee(user) && item.route === "production") || (!splitWorkflows && isProductionEmployee(user) && item.route === "production-record"))) && canAccessModule(user, item.route)).map(item => ({
     ...item,
     ...(role === "employee" && isScreenEmployee(user) && item.route === "work-session" ? {
       title:"เริ่มงาน–จบงาน + งานสกรีน", hint:"เริ่มหรือจบงาน และบันทึกยอดสกรีนในหน้าเดียว"

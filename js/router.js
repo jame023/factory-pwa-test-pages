@@ -4,7 +4,7 @@ import { watchChanges, pageBusy, preservePageDraft, mockLiveEnabled } from './li
 import { showActionPopup } from '../components/action-popup.js?v=1.3.186';
 import { isStatusModalOpen } from '../components/status-modal.js?v=1.3.186';
 const routes = {
-  home: () => import("../pages/home/index.js?v=1.3.187"),
+  home: () => import("../pages/home/index.js?v=1.3.188"),
   attendance: () => import("../pages/attendance/index.js?v=1.3.186"),
   "work-session": () => import("../pages/work-session/index.js?v=1.3.187"),
   leave: () => import("../pages/leave/index.js?v=1.3.186"),
