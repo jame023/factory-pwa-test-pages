@@ -1,4 +1,4 @@
-import { escapeHtml } from "../js/utils.js?v=1.3.184";
+import { escapeHtml } from "../js/utils.js?v=1.3.186";
 
 let activeConfirmation = null;
 

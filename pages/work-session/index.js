@@ -1,14 +1,14 @@
-import { listActiveItemNames, requireActiveItemName } from '../../js/active-item-names.js?v=1.3.184';
-import { loginToMachineAdmin } from '../../js/machine-admin-auth.js?v=1.3.184';
-import { renderWorkManager } from "./manager.js?v=1.3.184";
-import * as workApi from "../../adapters/package07.js?v=1.3.185";
-import * as screenApi from "../../adapters/package01.js?v=1.3.185";
-import { render as renderProductionRecord } from "../production-record/index.js?v=1.3.184";
-import { bangkokToday, escapeHtml, shortTime, thaiDate, thaiDateTime } from "../../js/utils.js?v=1.3.184";
-import { statCard } from "../../components/app-card.js?v=1.3.184";
-import { requireOnlineAction } from "../../js/offline.js?v=1.3.184";
-import { canEnterData, isProductionEmployee, isScreenEmployee, PRODUCTION_WORK_MACHINES, SCREEN_WORK_MACHINES } from "../../js/permissions.js?v=1.3.184";
-import { WORK_MACHINES, WORK_TYPES } from "../../js/record-schema.js?v=1.3.184";
+import { listActiveItemNames, requireActiveItemName } from '../../js/active-item-names.js?v=1.3.186';
+import { loginToMachineAdmin } from '../../js/machine-admin-auth.js?v=1.3.186';
+import { renderWorkManager } from "./manager.js?v=1.3.186";
+import * as workApi from "../../adapters/package07.js?v=1.3.186";
+import * as screenApi from "../../adapters/package01.js?v=1.3.186";
+import { render as renderProductionRecord } from "../production-record/index.js?v=1.3.186";
+import { bangkokToday, escapeHtml, shortTime, thaiDate, thaiDateTime } from "../../js/utils.js?v=1.3.186";
+import { statCard } from "../../components/app-card.js?v=1.3.186";
+import { requireOnlineAction } from "../../js/offline.js?v=1.3.186";
+import { canEnterData, isProductionEmployee, isScreenEmployee, PRODUCTION_WORK_MACHINES, SCREEN_WORK_MACHINES } from "../../js/permissions.js?v=1.3.186";
+import { WORK_MACHINES, WORK_TYPES } from "../../js/record-schema.js?v=1.3.186";
 
 const duration = (start, end) => {
   const minutes = Math.max(0, Math.floor((new Date(end || Date.now()) - new Date(start)) / 60000));

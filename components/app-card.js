@@ -1,4 +1,4 @@
-import { escapeHtml } from "../js/utils.js?v=1.3.184";
+import { escapeHtml } from "../js/utils.js?v=1.3.186";
 export function appCard({ route, icon, title, hint }) {
   return '<a class="card module-card" href="#/' + escapeHtml(route) + '">' +
     '<span class="module-icon" aria-hidden="true">' + icon + "</span>" +

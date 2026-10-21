@@ -1,9 +1,9 @@
-import { escapeHtml } from '../../js/utils.js?v=1.3.184';
-import { showStatusModal } from '../../components/status-modal.js?v=1.3.184';
-import { confirmAction } from '../../components/modal.js?v=1.3.184';
-import { createSupabaseItemNameRepository } from '../../js/item-name-admin-repository.js?v=1.3.184';
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../../js/config.js?v=1.3.184';
-import { getMachineAdminSession, loginToMachineAdmin, logoutFromMachineAdmin } from '../../js/machine-admin-auth.js?v=1.3.184';
+import { escapeHtml } from '../../js/utils.js?v=1.3.186';
+import { showStatusModal } from '../../components/status-modal.js?v=1.3.186';
+import { confirmAction } from '../../components/modal.js?v=1.3.186';
+import { createSupabaseItemNameRepository } from '../../js/item-name-admin-repository.js?v=1.3.186';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../../js/config.js?v=1.3.186';
+import { getMachineAdminSession, loginToMachineAdmin, logoutFromMachineAdmin } from '../../js/machine-admin-auth.js?v=1.3.186';
 
 const DATE = new Intl.DateTimeFormat('th-TH', { timeZone: 'Asia/Bangkok', dateStyle: 'medium', timeStyle: 'short' });
 const esc = escapeHtml;

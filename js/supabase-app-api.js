@@ -1,8 +1,8 @@
-import { validateLeaveSubmission, storedLeaveItems } from './leave-rules.js?v=1.3.184';
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1.3.184';
+import { validateLeaveSubmission, storedLeaveItems } from './leave-rules.js?v=1.3.186';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1.3.186';
 
-import { RECORD_SCHEMAS, validateRecord } from './record-schema.js?v=1.3.184';
-import { bangkokToday } from './utils.js?v=1.3.184';
+import { RECORD_SCHEMAS, validateRecord } from './record-schema.js?v=1.3.186';
+import { bangkokToday } from './utils.js?v=1.3.186';
 const SESSION_KEY = 'factory-pwa-line-supabase-session-v1';
 function getSupabaseLineAccessToken() { try { const saved=JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null'); return saved?.accessToken && Number.isFinite(saved.expiresAt) && saved.expiresAt>Date.now() ? saved.accessToken : ''; } catch (_) { return ''; } }
 
@@ -192,7 +192,7 @@ const normalized = category === 'leaveRequests' && Array.isArray(values.leaveIte
         return {name:person.name,groups:person.groups,workdays:own.length,attendanceDays:present.length,leaveDays:leave.length,absenceDays:absent.length,lateDays:late.length,lateMinutes:late.reduce((sum,row)=>sum+(Number(row.lateMinutes)||0),0),earlyDays:early.length,earlyMinutes:early.reduce((sum,row)=>sum+(Number(row.earlyLeaveMinutes)||0),0),overtimeDays:ot.length,overtimeMinutes:ot.reduce((sum,row)=>sum+(Number(row.overtimeMinutes)||0),0)};
       });
       const total={workdays:inRange.length,attendanceDays:inRange.filter(row=>row.checkIn).length,leaveDays:inRange.filter(row=>row.workdayStatus==='leave').length,absenceDays:inRange.filter(row=>row.absent||row.workdayStatus==='absent').length,lateDays:inRange.filter(row=>Number(row.lateMinutes)>0).length,lateMinutes:inRange.reduce((sum,row)=>sum+(Number(row.lateMinutes)||0),0),earlyDays:inRange.filter(row=>Number(row.earlyLeaveMinutes)>0).length,earlyMinutes:inRange.reduce((sum,row)=>sum+(Number(row.earlyLeaveMinutes)||0),0),overtimeDays:inRange.filter(row=>Number(row.overtimeMinutes)>0).length,overtimeMinutes:inRange.reduce((sum,row)=>sum+(Number(row.overtimeMinutes)||0),0)};
-      return {employees:people.map(({name})=>({name})),summaries,daily,startDate:start,endDate:end,currentDate:today,totals,overviewTotals:total,source:{kind:'real',asOf:new Date().toISOString()}};
+      return {employees:people.map(({name})=>({name})),summaries,daily,startDate:start,endDate:end,currentDate:today,totals:total,overviewTotals:total,source:{kind:'real',asOf:new Date().toISOString()}};
     }
     if (module==='package06' && action==='reports.read') {
       if(!['today','week','month'].includes(p.period)) throw fail('เลือกรอบรายงานไม่ถูกต้อง','VALIDATION_ERROR');

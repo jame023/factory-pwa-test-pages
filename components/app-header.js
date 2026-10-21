@@ -1,5 +1,5 @@
-import { APP_MODE, APP_NAME, ROLE_LABELS } from "../js/config.js?v=1.3.184";
-import { escapeHtml } from "../js/utils.js?v=1.3.184";
+import { APP_MODE, APP_NAME, ROLE_LABELS } from "../js/config.js?v=1.3.186";
+import { escapeHtml } from "../js/utils.js?v=1.3.186";
 
 export function renderAppHeader(user) {
   return '<div class="app-header"><div class="header-inner">' +

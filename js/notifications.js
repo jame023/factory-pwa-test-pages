@@ -1,12 +1,12 @@
-import { notificationReadKey, readAcknowledgedIds, acknowledgeNotifications } from "./notification-read-state.js?v=1.3.184";
-import { readAttendanceNotifications } from "../adapters/package10.js?v=1.3.184";
-import { renderLeaveMedia } from "./leave-media.js?v=1.3.184";
-import { readReportNotifications } from "../adapters/package06.js?v=1.3.184";
-import { APP_MODE } from "./config.js?v=1.3.184";
-import { readCalendarNotifications } from "../adapters/package08.js?v=1.3.184";
-import { readLeaveNotifications } from "../adapters/package09.js?v=1.3.184";
-import { subscribeStore } from "./state.js?v=1.3.184";
-import { escapeHtml, thaiDate } from "./utils.js?v=1.3.184";
+import { notificationReadKey, readAcknowledgedIds, acknowledgeNotifications } from "./notification-read-state.js?v=1.3.186";
+import { readAttendanceNotifications } from "../adapters/package10.js?v=1.3.186";
+import { renderLeaveMedia } from "./leave-media.js?v=1.3.186";
+import { readReportNotifications } from "../adapters/package06.js?v=1.3.186";
+import { APP_MODE } from "./config.js?v=1.3.186";
+import { readCalendarNotifications } from "../adapters/package08.js?v=1.3.186";
+import { readLeaveNotifications } from "../adapters/package09.js?v=1.3.186";
+import { subscribeStore } from "./state.js?v=1.3.186";
+import { escapeHtml, thaiDate } from "./utils.js?v=1.3.186";
 
 export function startCalendarNotifications(user,showToast) {
   if(APP_MODE!=="mock")return;

@@ -1,6 +1,6 @@
-import { attendanceCalculation, monthlyOverview } from './business-rules.js?v=1.3.184';
-import { createManagerAttendanceFixture } from './manager-attendance-fixture.js?v=1.3.184';
-import { bangkokToday } from './utils.js?v=1.3.184';
+import { attendanceCalculation, monthlyOverview } from './business-rules.js?v=1.3.186';
+import { createManagerAttendanceFixture } from './manager-attendance-fixture.js?v=1.3.186';
+import { bangkokToday } from './utils.js?v=1.3.186';
 
 export function normalizeAttendanceRecord(row) {
   const checkIn=row.checkIn || '',checkOut=row.checkOut || '';

@@ -1,8 +1,8 @@
-import * as screenApi from "../../adapters/package01.js?v=1.3.185";
-import { statCard } from "../../components/app-card.js?v=1.3.184";
-import { bangkokToday, escapeHtml, thaiDate, thaiDateTime } from "../../js/utils.js?v=1.3.184";
-import { requireOnlineAction } from "../../js/offline.js?v=1.3.184";
-import { isScreenEmployee } from "../../js/permissions.js?v=1.3.184";
+import * as screenApi from "../../adapters/package01.js?v=1.3.186";
+import { statCard } from "../../components/app-card.js?v=1.3.186";
+import { bangkokToday, escapeHtml, thaiDate, thaiDateTime } from "../../js/utils.js?v=1.3.186";
+import { requireOnlineAction } from "../../js/offline.js?v=1.3.186";
+import { isScreenEmployee } from "../../js/permissions.js?v=1.3.186";
 
 const machines = ["สกรีน B1 (แพ็คคอยาว)", "สกรีน B2 (คอสั้น)", "สกรีน B3 (คอยาว)"];
 const renderRows = rows => [...rows].sort((a,b) => String(b.createdAt || "").localeCompare(String(a.createdAt || ""))).slice(0, 8).map(item => {

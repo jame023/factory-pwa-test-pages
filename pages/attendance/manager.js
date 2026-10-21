@@ -1,8 +1,8 @@
-import { subscribeStore } from "../../js/state.js?v=1.3.184";
-import { APP_MODE } from "../../js/config.js?v=1.3.184";
-import { readAttendanceDashboard } from "../../adapters/package03.js?v=1.3.185";
-import { statCard, attendanceToneClass } from "../../components/app-card.js?v=1.3.184";
-import { bangkokToday, escapeHtml, thaiDate } from "../../js/utils.js?v=1.3.184";
+import { subscribeStore } from "../../js/state.js?v=1.3.186";
+import { APP_MODE } from "../../js/config.js?v=1.3.186";
+import { readAttendanceDashboard } from "../../adapters/package03.js?v=1.3.186";
+import { statCard, attendanceToneClass } from "../../components/app-card.js?v=1.3.186";
+import { bangkokToday, escapeHtml, thaiDate } from "../../js/utils.js?v=1.3.186";
 
 const duration = value => String(Math.floor(value / 60)).padStart(2,"0") + ":" + String(value % 60).padStart(2,"0");
 const display = value => escapeHtml(value === "" || value == null ? "—" : String(value));

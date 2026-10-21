@@ -1,11 +1,11 @@
-import { pageBusy } from '../../js/live-updates.js?v=1.3.184';
-import { attendanceCalculation } from '../../js/business-rules.js?v=1.3.184';
-import { render as renderWorkCalendar } from "../calendar/index.js?v=1.3.184";
-import * as adminApi from "../../adapters/package11.js?v=1.3.185";
-import { escapeHtml, thaiDateTime } from "../../js/utils.js?v=1.3.184";
-import { RECORD_SCHEMAS, blankRecord, validateRecord } from "../../js/record-schema.js?v=1.3.184";
-import { requireOnlineAction } from "../../js/offline.js?v=1.3.184";
-import { confirmAction } from "../../components/modal.js?v=1.3.184";
+import { pageBusy } from '../../js/live-updates.js?v=1.3.186';
+import { attendanceCalculation } from '../../js/business-rules.js?v=1.3.186';
+import { render as renderWorkCalendar } from "../calendar/index.js?v=1.3.186";
+import * as adminApi from "../../adapters/package11.js?v=1.3.186";
+import { escapeHtml, thaiDateTime } from "../../js/utils.js?v=1.3.186";
+import { RECORD_SCHEMAS, blankRecord, validateRecord } from "../../js/record-schema.js?v=1.3.186";
+import { requireOnlineAction } from "../../js/offline.js?v=1.3.186";
+import { confirmAction } from "../../components/modal.js?v=1.3.186";
 
 const modules = [
   ["employees","พนักงานและสิทธิ์","ชื่อ กลุ่มงาน บทบาท และสถานะบัญชี"],
