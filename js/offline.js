@@ -41,6 +41,7 @@ export async function registerServiceWorker() {
       });
     });
     showUpdate();
+    void registration.update().catch(error => console.warn("Service worker update check failed", error));
     navigator.serviceWorker.addEventListener("controllerchange", () => {
       if (updateReady) location.reload();
     }, { once: true });

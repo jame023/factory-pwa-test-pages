@@ -1,4 +1,4 @@
-const CACHE_NAME = "factory-pwa-shell-v1.3.177";
+const CACHE_NAME = "factory-pwa-shell-v1.3.178";
 const APP_SHELL = [
   "./pages/production-record/index.js",
   "./pages/ot/index.js",
@@ -38,7 +38,7 @@ const APP_SHELL = [
 ];
 const shellUrls = new Set(APP_SHELL.map(asset => new URL(asset, self.location.href).href));
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
+  event.waitUntil((async () => { const cache = await caches.open(CACHE_NAME); const requests = APP_SHELL.map(asset => new Request(new URL(asset, self.location.href), { cache: "reload" })); await cache.addAll(requests); })());
 });
 self.addEventListener("activate", event => {
   event.waitUntil((async () => {
