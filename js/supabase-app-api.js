@@ -1,7 +1,9 @@
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1.3.180';
-import { getSupabaseLineAccessToken } from './auth.js?v=1.3.180';
-import { RECORD_SCHEMAS, validateRecord } from './record-schema.js?v=1.3.180';
-import { bangkokToday } from './utils.js?v=1.3.180';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1.3.181';
+
+import { RECORD_SCHEMAS, validateRecord } from './record-schema.js?v=1.3.181';
+import { bangkokToday } from './utils.js?v=1.3.181';
+const SESSION_KEY = 'factory-pwa-line-supabase-session-v1';
+function getSupabaseLineAccessToken() { try { const saved=JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null'); return saved?.accessToken && Number.isFinite(saved.expiresAt) && saved.expiresAt>Date.now() ? saved.accessToken : ''; } catch (_) { return ''; } }
 
 const CATEGORIES = new Set(['attendance','workSessions','leaveRequests','calendar','deliveries','production','screenEntries','otRequests']);
 const GROUP_BY_CATEGORY = { screenEntries:'สกรีน', production:'ผลิต', deliveries:'ขนส่ง' };

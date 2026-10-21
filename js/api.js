@@ -2,7 +2,7 @@ import { APP_MODE } from "./config.js";
 import { mockRequest } from "./mock-api.js";
 import { normalizeAttendanceQuery, validateAttendanceResponse, validateManagerResponse } from "./attendance-contract.js";
 import { requestReadOnly } from "./read-only-api.js";
-import { createSupabaseAppApi } from "./supabase-app-api.js?v=1.3.180";
+import { createSupabaseAppApi } from "./supabase-app-api.js?v=1.3.181";
 
 export async function request(module, action, payload = {}, options = {}) {
   let data;

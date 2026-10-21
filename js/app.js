@@ -3,12 +3,12 @@ import { authProvider } from "./auth.js";
 import { renderAppHeader } from "../components/app-header.js";
 import { renderLoginScreen } from "../components/login-screen.js";
 import { renderBottomNav } from "../components/bottom-nav.js";
-import { currentRoute, startRouter, refreshRoute } from "./router.js?v=1.3.179";
+import { currentRoute, startRouter, refreshRoute } from "./router.js?v=1.3.181";
 import { subscribeStore } from './state.js';
 import { showToast } from "../components/toast.js";
-import { registerServiceWorker, setOfflineNotice, watchConnection } from "./offline.js?v=1.3.179";
-import { APP_MODE } from "./config.js?v=1.3.179";
-import { installActionFeedback, showActionPopup } from "../components/action-popup.js?v=1.3.179";
+import { registerServiceWorker, setOfflineNotice, watchConnection } from "./offline.js?v=1.3.181";
+import { APP_MODE } from "./config.js?v=1.3.181";
+import { installActionFeedback, showActionPopup } from "../components/action-popup.js?v=1.3.181";
 // Preserve the machine-only OAuth code before the mock app/router can replace the URL.
 const machineOAuthCode = new URLSearchParams(location.search).get('code');
 if (machineOAuthCode && /^#\/admin\/(machines|item-names)(?:$|\?)/.test(location.hash)) {

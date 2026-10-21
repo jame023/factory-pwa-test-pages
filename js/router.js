@@ -1,10 +1,10 @@
-import { APP_MODE, READ_ONLY_ROUTES } from "./config.js?v=1.3.179";
-import { resolveWorkspaceRoute, canAccessModule } from "./permissions.js?v=1.3.179";
+import { APP_MODE, READ_ONLY_ROUTES } from "./config.js?v=1.3.181";
+import { resolveWorkspaceRoute, canAccessModule } from "./permissions.js?v=1.3.181";
 import { watchChanges, pageBusy, preservePageDraft, mockLiveEnabled } from './live-updates.js';
-import { showActionPopup } from '../components/action-popup.js?v=1.3.179';
+import { showActionPopup } from '../components/action-popup.js?v=1.3.181';
 import { isStatusModalOpen } from '../components/status-modal.js';
 const routes = {
-  home: () => import("../pages/home/index.js?v=1.3.179"),
+  home: () => import("../pages/home/index.js?v=1.3.181"),
   attendance: () => import("../pages/attendance/index.js"),
   "work-session": () => import("../pages/work-session/index.js"),
   leave: () => import("../pages/leave/index.js"),
@@ -15,10 +15,10 @@ const routes = {
   ot: () => import("../pages/ot/index.js"),
   reports: () => import("../pages/reports/index.js"),
   admin: () => import("../pages/admin/index.js"),
-  "admin-employees": () => import("../pages/admin/employees.js?v=1.3.179"),
-  "admin-groups": () => import("../pages/admin/groups.js?v=1.3.179"),
-  "admin-machines": () => import("../pages/admin/machines.js?v=1.3.179"),
-  "admin-item-names": () => import("../pages/admin/item-names.js?v=1.3.179")
+  "admin-employees": () => import("../pages/admin/employees.js?v=1.3.181"),
+  "admin-groups": () => import("../pages/admin/groups.js?v=1.3.181"),
+  "admin-machines": () => import("../pages/admin/machines.js?v=1.3.181"),
+  "admin-item-names": () => import("../pages/admin/item-names.js?v=1.3.181")
 };
 routes.employee = routes.home;
 routes.executive = routes.home;

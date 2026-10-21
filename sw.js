@@ -1,4 +1,4 @@
-const CACHE_NAME = "factory-pwa-shell-v1.3.180";
+const CACHE_NAME = "factory-pwa-shell-v1.3.181";
 const APP_SHELL = [
   "./pages/production-record/index.js",
   "./pages/ot/index.js",
@@ -36,7 +36,7 @@ const APP_SHELL = [
   "./pages/production/index.js", "./pages/reports/index.js",
   "./pages/admin/index.js"
 ];
-APP_SHELL.push("./js/router.js?v=1.3.179", "./js/offline.js?v=1.3.179", "./js/config.js?v=1.3.179", "./js/permissions.js?v=1.3.179", "./components/action-popup.js?v=1.3.179", "./pages/home/index.js?v=1.3.179", "./adapters/package07.js?v=1.3.179", "./adapters/package09.js?v=1.3.179", "./adapters/package10.js?v=1.3.179", "./js/api.js?v=1.3.179", "./js/supabase-app-api.js?v=1.3.180", "./js/auth.js?v=1.3.180", "./js/record-schema.js?v=1.3.180", "./js/utils.js?v=1.3.180", "./js/config.js?v=1.3.180");
+APP_SHELL.push("./js/router.js?v=1.3.179", "./js/offline.js?v=1.3.179", "./js/config.js?v=1.3.179", "./js/permissions.js?v=1.3.179", "./components/action-popup.js?v=1.3.179", "./pages/home/index.js?v=1.3.179", "./adapters/package07.js?v=1.3.179", "./adapters/package09.js?v=1.3.179", "./adapters/package10.js?v=1.3.179", "./js/api.js?v=1.3.179", "./js/supabase-app-api.js?v=1.3.180", "./js/auth.js?v=1.3.180", "./js/record-schema.js?v=1.3.180", "./js/utils.js?v=1.3.180", "./js/config.js?v=1.3.181", "./js/app.js?v=1.3.181", "./js/router.js?v=1.3.181", "./js/offline.js?v=1.3.181", "./js/permissions.js?v=1.3.181", "./components/action-popup.js?v=1.3.181", "./pages/home/index.js?v=1.3.181", "./adapters/package07.js?v=1.3.181", "./adapters/package09.js?v=1.3.181", "./adapters/package10.js?v=1.3.181", "./js/api.js?v=1.3.181", "./js/supabase-app-api.js?v=1.3.181", "./js/record-schema.js?v=1.3.181", "./js/utils.js?v=1.3.181");
 const shellUrls = new Set(APP_SHELL.map(asset => new URL(asset, self.location.href).href));
 self.addEventListener("install", event => {
   event.waitUntil((async () => { const cache = await caches.open(CACHE_NAME); const requests = APP_SHELL.map(asset => new Request(new URL(asset, self.location.href), { cache: "reload" })); await cache.addAll(requests); })());
