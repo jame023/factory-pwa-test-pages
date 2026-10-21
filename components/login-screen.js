@@ -11,6 +11,7 @@ export function renderLoginScreen(message = "") {
     '<p class="login-description">' + description + '</p>' +
     (message ? '<p class="notice notice-warning" role="alert">' + escapeHtml(message) + '</p>' : '') +
     '<button class="button button-primary login-submit" type="button" data-auth-login>' + (mock ? "เข้าสู่ระบบตัวอย่าง" : "ยืนยันตัวตนด้วย LINE") + '</button>' +
+    (message === 'ยังไม่มีบัญชีในระบบ' ? '<button class="button login-submit" type="button" disabled aria-describedby="signup-later">สมัครสมาชิก (Pass ถัดไป)</button><p id="signup-later" class="help-text">ยังไม่เปิดรับสมัคร กรุณาติดต่อ Admin</p>' : '') +
     '<p class="help-text login-privacy">ระบบจะไม่เก็บ LINE token ไว้ในเครื่อง สิทธิ์ใช้งานต้องมาจาก backend เท่านั้น</p>' +
     '</section>';
 }

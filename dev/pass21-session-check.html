@@ -1,0 +1,10 @@
+<!doctype html><html lang="th"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; connect-src https://hpagibjbxdtmkuouitae.supabase.co; style-src 'self'">
+<title>Pass 2.1 Session checks — Test only</title>
+<h1>Pass 2.1 — ทดสอบ Session จริง</h1>
+<p>เครื่องมือทดสอบชั่วคราว ไม่แสดง Token และไม่สร้างรายการปฏิบัติงาน</p>
+<button id="capture">เก็บ Session ปัจจุบันในหน่วยความจำ</button>
+<button id="check">ตรวจสิทธิ์ด้วย Session ที่เก็บไว้</button>
+<button id="expire">จำลองเวลา Session ฝั่งแอปหมดอายุ</button>
+<pre id="result" role="status"></pre>
+<script type="module" src="./pass21-session-check.js"></script></html>

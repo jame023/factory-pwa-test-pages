@@ -1,7 +1,7 @@
 import { startCalendarNotifications } from "./notifications.js?v=1.3.186";
-import { authProvider } from "./auth.js?v=1.3.186";
+import { authProvider, clearSupabaseSession, checkSupabaseSession } from "./auth.js?v=1.3.191";
 import { renderAppHeader } from "../components/app-header.js?v=1.3.186";
-import { renderLoginScreen } from "../components/login-screen.js?v=1.3.186";
+import { renderLoginScreen } from "../components/login-screen.js?v=1.3.191";
 import { renderBottomNav } from "../components/bottom-nav.js?v=1.3.186";
 import { currentRoute, startRouter, refreshRoute } from "./router.js?v=1.3.190";
 import { subscribeStore } from './state.js?v=1.3.186';
@@ -61,6 +61,12 @@ async function signOut() {
     await authProvider.logout();
     location.reload();
   } catch (error) {
+    if (APP_MODE === 'supabase-line') {
+      // Local credentials are already cleared even if server revocation failed.
+      sessionStorage.setItem('factory-pwa-session-end-message','ออกจากระบบในเครื่องแล้ว แต่เชื่อมต่อเพื่อยืนยันการออกจากระบบไม่ได้');
+      location.reload();
+      return;
+    }
     showActionPopup(error?.message || "ออกจากระบบไม่สำเร็จ", { tone:"error", timeout:3000 });
   }
 }
@@ -83,12 +89,52 @@ function watchMockAccount() {
   });
 }
 
+let checkingSession = false;
+let sessionEnded = false;
+async function endRealSession(message) {
+  if (sessionEnded) return;
+  sessionEnded = true;
+  stopNotifications?.();
+  await clearSupabaseSession().catch(() => {});
+  // Stop the existing router and discard any pending page requests.
+  sessionStorage.setItem('factory-pwa-session-end-message',message);
+  location.replace(location.pathname + '#/login');
+  location.reload();
+}
+function watchRealSession() {
+  if (APP_MODE !== 'supabase-line') return;
+  const verify = async () => {
+    if (checkingSession || sessionEnded) return;
+    checkingSession = true;
+    try {
+      if (Date.parse(session.session_expiry) <= Date.now()) throw new Error('Session หมดอายุ กรุณาเข้าสู่ระบบ LINE ใหม่');
+      const state = await checkSupabaseSession();
+      if (state.main_group !== session.main_group || JSON.stringify([...state.groups].sort()) !== JSON.stringify([...session.groups].sort())) {
+        throw new Error('สิทธิ์บัญชีเปลี่ยนแล้ว กรุณาเข้าสู่ระบบ LINE ใหม่');
+      }
+    } catch (error) {
+      // A network outage must not silently extend the session deadline.
+      if (error instanceof TypeError || (error.status && error.status >= 500)) {
+        showToast('เชื่อมต่อไม่ได้ กรุณาตรวจอินเทอร์เน็ต','error');
+      } else { await endRealSession(error.message); }
+    } finally { checkingSession = false; }
+  };
+  setTimeout(() => void endRealSession('Session หมดอายุ กรุณาเข้าสู่ระบบ LINE ใหม่'),Math.max(0,Date.parse(session.session_expiry)-Date.now()));
+  setInterval(() => { if (!document.hidden) void verify(); },10000);
+  document.addEventListener('visibilitychange',() => { if (!document.hidden) void verify(); });
+  window.addEventListener('focus',() => void verify());
+  window.addEventListener('storage',event => {
+    if (event.key === 'factory-pwa-session-signed-out' && event.newValue === '1') void endRealSession('ออกจากระบบแล้ว กรุณาเข้าสู่ระบบใหม่');
+  });
+}
+
 async function mountApp() {
   if (appMounted) return;
   appMounted = true;
   renderChrome();
   stopNotifications = session.user.active===false ? undefined : startCalendarNotifications(session.user,showToast);
   watchMockAccount();
+  watchRealSession();
   startRouter({
     root: pageRoot,
     loading: loadingRoot,
@@ -107,7 +153,9 @@ async function start() {
   try {
     session = await authProvider.getSession();
     if (!session) {
-      renderLogin();
+      const message = sessionStorage.getItem('factory-pwa-session-end-message') || '';
+      sessionStorage.removeItem('factory-pwa-session-end-message');
+      renderLogin(message);
       return;
     }
     await mountApp();

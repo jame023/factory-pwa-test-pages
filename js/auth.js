@@ -1,3 +1,4 @@
+import { saveSession, loadSession, deleteSession, withSessionLock } from './session-vault.js?v=1.3.191';
 import { APP_MODE, MOCK_USERS, ROLE_LABELS, MOCK_SESSION_ROLE, MOCK_SESSION_GROUP, LINE_LIFF_ID, API_BASE_URL,
   SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, SUPABASE_LINE_PROVIDER } from "./config.js?v=1.3.186";
 import { startPkceOAuth, completePkceOAuth } from "./pkce-oauth.js?v=1.3.186";
@@ -192,12 +193,37 @@ async function supabaseRequest(path, { method = "GET", token, body } = {}) {
   if (!response.ok) {
     const error = new Error("เชื่อมต่อระบบยืนยันตัวตนไม่ได้");
     error.status = response.status;
+    error.authMessage = String(value?.msg || value?.message || value?.error_description || "");
     throw error;
   }
   return value;
 }
 
-function clearSupabaseSession() { sessionStorage.removeItem(SUPABASE_SESSION_KEY); }
+async function clearStoredSession() {
+  sessionStorage.removeItem(SUPABASE_SESSION_KEY);
+  sessionStorage.removeItem('factory-pwa-machine-supabase-session-v1');
+  localStorage.setItem('factory-pwa-session-signed-out','1');
+  await deleteSession();
+}
+export function clearSupabaseSession() { return withSessionLock(clearStoredSession); }
+
+function authFailure(value) {
+  const text = String(value || '');
+  if (text.includes('FACTORY_ACCOUNT_INACTIVE') || text === 'inactive') return new Error('บัญชีถูกระงับการใช้งาน');
+  if (text.includes('FACTORY_ACCOUNT_NOT_FOUND') || text === 'not_found') return new Error('ยังไม่มีบัญชีในระบบ');
+  if (text.includes('FACTORY_NO_GROUP')) return new Error('ยังไม่มีกลุ่มงาน กรุณาติดต่อ Admin');
+  if (text === 'session_expired') return new Error('Session หมดอายุ กรุณาเข้าสู่ระบบ LINE ใหม่');
+  if (text === 'permissions_changed') return new Error('สิทธิ์บัญชีเปลี่ยนแล้ว กรุณาเข้าสู่ระบบ LINE ใหม่');
+  return new Error('ไม่สามารถยืนยันตัวตนได้ กรุณาเริ่ม LINE Login ใหม่');
+}
+
+export async function checkSupabaseSession() {
+  const token = getSupabaseLineAccessToken();
+  if (!token) throw authFailure('session_expired');
+  const result = await supabaseRequest('/rest/v1/rpc/factory_session_status', {method:'POST', token, body:{}});
+  if (result?.authorized !== true) throw authFailure(result?.reason);
+  return result;
+}
 
 export function getSupabaseLineAccessToken() {
   try {
@@ -223,19 +249,28 @@ export class SupabaseLineAuthProvider extends AuthProvider {
     return null;
   }
 
-  async getSession() {
+  async getSession() { return withSessionLock(() => this.restoreSession()); }
+
+  async restoreSession() {
     const callback = await completePkceOAuth({ supabaseUrl:SUPABASE_URL, publishableKey:SUPABASE_PUBLISHABLE_KEY });
     if (callback?.error) {
-      clearSupabaseSession();
-      throw new Error("ไม่สามารถยืนยันตัวตนได้ กรุณาเริ่ม LINE Login ใหม่");
+      await clearStoredSession();
+      throw authFailure(callback.error);
     }
 
     let saved = callback?.accessToken ? callback : null;
     if (!saved) {
-      try { saved = JSON.parse(sessionStorage.getItem(SUPABASE_SESSION_KEY) || "null"); }
-      catch (_) { saved = null; }
+      if (localStorage.getItem('factory-pwa-session-signed-out') === '1') return null;
+      saved = await loadSession();
+      if (!saved) {
+        try { saved = JSON.parse(sessionStorage.getItem(SUPABASE_SESSION_KEY) || "null"); } catch (_) { saved = null; }
+      }
     }
     if (!saved?.accessToken || !saved?.refreshToken) return null;
+    if (!Number.isFinite(saved.expiresAt) || saved.expiresAt <= Date.now()) {
+      await clearStoredSession();
+      throw authFailure('session_expired');
+    }
 
     // Reissue the Supabase session on app start so the Auth Hook recalculates access.
     try {
@@ -244,33 +279,35 @@ export class SupabaseLineAuthProvider extends AuthProvider {
       });
       saved = { accessToken:refreshed.access_token, refreshToken:refreshed.refresh_token,
         expiresAt:Date.now() + Number(refreshed.expires_in || 3600) * 1000 };
-    } catch (_) {
-      clearSupabaseSession();
-      return null;
+      // Rotation has already happened. Preserve the new pair if a later read has a network error.
+      await saveSession(saved);
+    } catch (error) {
+      await clearStoredSession();
+      throw authFailure(error.authMessage);
     }
 
     const claims = decodeClaims(saved.accessToken);
     const metadata = claims.app_metadata || {};
     if (metadata.employee_status === "inactive") {
-      clearSupabaseSession();
+      await clearStoredSession();
       throw new Error("บัญชีถูกระงับการใช้งาน");
     }
     if (metadata.employee_status === "not_found") {
-      clearSupabaseSession();
+      await clearStoredSession();
       throw new Error("ยังไม่มีบัญชีในระบบ");
     }
     const role = metadata.role;
     const employeeId = metadata.employee_id;
     if (!claims.exp || Number(claims.exp) * 1000 <= Date.now() ||
         !["admin", "employee", "executive"].includes(role) || typeof employeeId !== "string") {
-      clearSupabaseSession();
+      await clearStoredSession();
       throw new Error("บัญชีนี้ยังไม่มีสิทธิ์เข้าใช้งาน กรุณาติดต่อ Admin");
     }
 
     // Supabase verifies the signed token; RLS limits both reads to this employee.
     const authUser = await supabaseRequest("/auth/v1/user", { token:saved.accessToken });
     if (!(authUser?.identities || []).some(identity => identity.provider === SUPABASE_LINE_PROVIDER)) {
-      clearSupabaseSession();
+      await clearStoredSession();
       throw new Error("ไม่สามารถยืนยันตัวตนได้");
     }
     const employeeUrl = new URL("/rest/v1/employees", SUPABASE_URL);
@@ -278,7 +315,7 @@ export class SupabaseLineAuthProvider extends AuthProvider {
     const employees = await supabaseRequest(employeeUrl.pathname + employeeUrl.search, { token:saved.accessToken });
     const employee = Array.isArray(employees) && employees.length === 1 ? employees[0] : null;
     if (!employee || employee.active !== true) {
-      clearSupabaseSession();
+      await clearStoredSession();
       throw new Error(employee?.active === false ? "บัญชีถูกระงับการใช้งาน" : "ยังไม่มีบัญชีในระบบ");
     }
     const groupsUrl = new URL("/rest/v1/employee_groups", SUPABASE_URL);
@@ -287,10 +324,12 @@ export class SupabaseLineAuthProvider extends AuthProvider {
     const groups = [...new Set((Array.isArray(memberships) ? memberships : []).map(row => row.group_name)
       .filter(value => typeof value === "string" && value.length <= 80))];
     if (roleForGroups(groups) !== role) {
-      clearSupabaseSession();
+      await clearStoredSession();
       throw new Error("สิทธิ์บัญชีเปลี่ยนแล้ว กรุณาเข้าสู่ระบบ LINE ใหม่");
     }
 
+    await saveSession(saved);
+    localStorage.removeItem('factory-pwa-session-signed-out');
     sessionStorage.setItem(SUPABASE_SESSION_KEY, JSON.stringify(saved));
     const sessionExpiry = new Date(Number(claims.exp) * 1000).toISOString();
     const redirectTarget = role === "admin" ? "admin" : role === "executive" ? "executive" : "home";
@@ -305,10 +344,15 @@ export class SupabaseLineAuthProvider extends AuthProvider {
   }
 
   async logout() {
-    let saved = null;
-    try { saved = JSON.parse(sessionStorage.getItem(SUPABASE_SESSION_KEY) || "null"); } catch (_) {}
-    clearSupabaseSession();
-    if (saved?.accessToken) await supabaseRequest("/auth/v1/logout", { method:"POST", token:saved.accessToken, body:{} });
+    return withSessionLock(async () => {
+      let saved = await loadSession();
+      if (!saved) { try { saved = JSON.parse(sessionStorage.getItem(SUPABASE_SESSION_KEY) || "null"); } catch (_) {} }
+      await clearStoredSession();
+      if (saved?.accessToken) {
+        try { await supabaseRequest('/auth/v1/logout', {method:'POST',token:saved.accessToken,body:{}}); }
+        catch (error) { if (![401,403].includes(error.status)) throw error; }
+      }
+    });
   }
 }
 
