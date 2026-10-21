@@ -1,24 +1,24 @@
-import { APP_MODE, READ_ONLY_ROUTES } from "./config.js?v=1.3.181";
-import { resolveWorkspaceRoute, canAccessModule } from "./permissions.js?v=1.3.181";
-import { watchChanges, pageBusy, preservePageDraft, mockLiveEnabled } from './live-updates.js';
-import { showActionPopup } from '../components/action-popup.js?v=1.3.181';
-import { isStatusModalOpen } from '../components/status-modal.js';
+import { APP_MODE, READ_ONLY_ROUTES } from "./config.js?v=1.3.184";
+import { resolveWorkspaceRoute, canAccessModule } from "./permissions.js?v=1.3.184";
+import { watchChanges, pageBusy, preservePageDraft, mockLiveEnabled } from './live-updates.js?v=1.3.184';
+import { showActionPopup } from '../components/action-popup.js?v=1.3.184';
+import { isStatusModalOpen } from '../components/status-modal.js?v=1.3.184';
 const routes = {
-  home: () => import("../pages/home/index.js?v=1.3.181"),
-  attendance: () => import("../pages/attendance/index.js"),
-  "work-session": () => import("../pages/work-session/index.js"),
-  leave: () => import("../pages/leave/index.js"),
-  calendar: () => import("../pages/calendar/index.js"),
-  delivery: () => import("../pages/delivery/index.js"),
-  production: () => import("../pages/production/index.js"),
-  "production-record": () => import("../pages/production-record/index.js"),
-  ot: () => import("../pages/ot/index.js"),
-  reports: () => import("../pages/reports/index.js"),
-  admin: () => import("../pages/admin/index.js"),
-  "admin-employees": () => import("../pages/admin/employees.js?v=1.3.181"),
-  "admin-groups": () => import("../pages/admin/groups.js?v=1.3.181"),
-  "admin-machines": () => import("../pages/admin/machines.js?v=1.3.181"),
-  "admin-item-names": () => import("../pages/admin/item-names.js?v=1.3.181")
+  home: () => import("../pages/home/index.js?v=1.3.184"),
+  attendance: () => import("../pages/attendance/index.js?v=1.3.184"),
+  "work-session": () => import("../pages/work-session/index.js?v=1.3.184"),
+  leave: () => import("../pages/leave/index.js?v=1.3.184"),
+  calendar: () => import("../pages/calendar/index.js?v=1.3.184"),
+  delivery: () => import("../pages/delivery/index.js?v=1.3.184"),
+  production: () => import("../pages/production/index.js?v=1.3.184"),
+  "production-record": () => import("../pages/production-record/index.js?v=1.3.184"),
+  ot: () => import("../pages/ot/index.js?v=1.3.184"),
+  reports: () => import("../pages/reports/index.js?v=1.3.184"),
+  admin: () => import("../pages/admin/index.js?v=1.3.184"),
+  "admin-employees": () => import("../pages/admin/employees.js?v=1.3.184"),
+  "admin-groups": () => import("../pages/admin/groups.js?v=1.3.184"),
+  "admin-machines": () => import("../pages/admin/machines.js?v=1.3.184"),
+  "admin-item-names": () => import("../pages/admin/item-names.js?v=1.3.184")
 };
 routes.employee = routes.home;
 routes.executive = routes.home;
@@ -82,7 +82,9 @@ async function renderRoute() {
   if (readRoute() !== destination.canonical) history.replaceState(null, "", "#/" + destination.canonical);
   activeRoute = route;
   onRoute(route);
-  if (APP_MODE !== "mock" && !READ_ONLY_ROUTES.includes(route)) {
+  if ((APP_MODE === "development" && !READ_ONLY_ROUTES.includes(route)) ||
+      (APP_MODE !== "mock" && APP_MODE !== "development" &&
+       !(APP_MODE === "supabase-line" && ["home","attendance","work-session","leave","calendar","delivery","production","production-record","ot"].includes(route)))) {
     showActionPopup("หมวดนี้ยังไม่เปิดเชื่อมต่อข้อมูล", { tone: "info", timeout: 2600 });
     pageRoot.innerHTML = '<section class="notice notice-warning"><h1>โมดูลนี้ยังไม่เปิด API</h1><p>โหมดอ่านข้อมูลทดสอบเปิดเฉพาะเวลาของฉัน</p><a class="button" href="#/attendance">เปิดเวลาของฉัน</a></section>';
     loader.hidden = true;

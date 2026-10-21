@@ -1,11 +1,11 @@
 import { APP_MODE, MOCK_USERS, ROLE_LABELS, MOCK_SESSION_ROLE, MOCK_SESSION_GROUP, LINE_LIFF_ID, API_BASE_URL,
-  SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, SUPABASE_LINE_PROVIDER } from "./config.js?v=1.3.176";
-import { startPkceOAuth, completePkceOAuth } from "./pkce-oauth.js";
+  SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, SUPABASE_LINE_PROVIDER } from "./config.js?v=1.3.184";
+import { startPkceOAuth, completePkceOAuth } from "./pkce-oauth.js?v=1.3.184";
 
-import { requestReadOnly } from "./read-only-api.js";
-import { normalizeRole, normalizeGroup } from "./permissions.js";
-import { ACTIVE_DIRECTORY_NAMES, DIRECTORY_SNAPSHOT_DATE } from './directory-snapshot.js';
-import { getStore } from './state.js';
+import { requestReadOnly } from "./read-only-api.js?v=1.3.184";
+import { normalizeRole, normalizeGroup } from "./permissions.js?v=1.3.184";
+import { ACTIVE_DIRECTORY_NAMES, DIRECTORY_SNAPSHOT_DATE } from './directory-snapshot.js?v=1.3.184';
+import { getStore } from './state.js?v=1.3.184';
 
 const MOCK_LOGIN_KEY = "factory-pwa-demo-login-v1";
 const LINE_SIGNED_OUT_KEY = "factory-pwa-line-signed-out-v1";

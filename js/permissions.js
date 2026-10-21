@@ -1,7 +1,7 @@
 // UI and mock permissions only. Real authorization must be enforced by the backend.
 export const normalizeRole = role => role === "manager" ? "executive" : role;
 // Accept old mock group values at the boundary; display/store the canonical name.
-export const normalizeGroup = group => group === "ส่งของ" ? "ขนส่ง" : group;
+export const normalizeGroup = group => group === "ส่งของ" ? "ขนส่ง" : group === "ออฟฟิศ" ? "ออฟฟิต" : group;
 export const canEnterData = role => ["employee", "admin"].includes(normalizeRole(role));
 export const canManage = role => ["executive", "admin"].includes(normalizeRole(role));
 export const canEditAll = role => normalizeRole(role) === "admin";

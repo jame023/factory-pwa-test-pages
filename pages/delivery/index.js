@@ -1,8 +1,8 @@
-import { APP_MODE } from "../../js/config.js";
-import * as deliveryApi from "../../adapters/package04.js";
-import { escapeHtml, localDateTimeValue, thaiDateTime } from "../../js/utils.js";
-import { requireOnlineAction } from "../../js/offline.js";
-import { canEnterData } from "../../js/permissions.js";
+import { APP_MODE } from "../../js/config.js?v=1.3.184";
+import * as deliveryApi from "../../adapters/package04.js?v=1.3.184";
+import { escapeHtml, localDateTimeValue, thaiDateTime } from "../../js/utils.js?v=1.3.184";
+import { requireOnlineAction } from "../../js/offline.js?v=1.3.184";
+import { canEnterData } from "../../js/permissions.js?v=1.3.184";
 
 const MAX_DELIVERY_PHOTOS = 10;
 const MAX_DELIVERY_FILE_BYTES = 1024 * 1024;

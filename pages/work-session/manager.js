@@ -1,6 +1,6 @@
-import { listWorkSessions } from "../../adapters/package07.js";
-import { statCard } from "../../components/app-card.js";
-import { escapeHtml, thaiDateTime } from "../../js/utils.js";
+import { listWorkSessions } from "../../adapters/package07.js?v=1.3.184";
+import { statCard } from "../../components/app-card.js?v=1.3.184";
+import { escapeHtml, thaiDateTime } from "../../js/utils.js?v=1.3.184";
 
 const text = value => escapeHtml(value == null || value === "" ? "—" : String(value));
 const validTime = value => value && Number.isFinite(Date.parse(value));

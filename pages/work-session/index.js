@@ -1,14 +1,14 @@
-import { listActiveItemNames, requireActiveItemName } from '../../js/active-item-names.js';
-import { loginToMachineAdmin } from '../../js/machine-admin-auth.js';
-import { renderWorkManager } from "./manager.js";
-import * as workApi from "../../adapters/package07.js";
-import * as screenApi from "../../adapters/package01.js";
-import { render as renderProductionRecord } from "../production-record/index.js";
-import { bangkokToday, escapeHtml, shortTime, thaiDate, thaiDateTime } from "../../js/utils.js";
-import { statCard } from "../../components/app-card.js";
-import { requireOnlineAction } from "../../js/offline.js";
-import { canEnterData, isProductionEmployee, isScreenEmployee, PRODUCTION_WORK_MACHINES, SCREEN_WORK_MACHINES } from "../../js/permissions.js";
-import { WORK_MACHINES, WORK_TYPES } from "../../js/record-schema.js";
+import { listActiveItemNames, requireActiveItemName } from '../../js/active-item-names.js?v=1.3.184';
+import { loginToMachineAdmin } from '../../js/machine-admin-auth.js?v=1.3.184';
+import { renderWorkManager } from "./manager.js?v=1.3.184";
+import * as workApi from "../../adapters/package07.js?v=1.3.184";
+import * as screenApi from "../../adapters/package01.js?v=1.3.184";
+import { render as renderProductionRecord } from "../production-record/index.js?v=1.3.184";
+import { bangkokToday, escapeHtml, shortTime, thaiDate, thaiDateTime } from "../../js/utils.js?v=1.3.184";
+import { statCard } from "../../components/app-card.js?v=1.3.184";
+import { requireOnlineAction } from "../../js/offline.js?v=1.3.184";
+import { canEnterData, isProductionEmployee, isScreenEmployee, PRODUCTION_WORK_MACHINES, SCREEN_WORK_MACHINES } from "../../js/permissions.js?v=1.3.184";
+import { WORK_MACHINES, WORK_TYPES } from "../../js/record-schema.js?v=1.3.184";
 
 const duration = (start, end) => {
   const minutes = Math.max(0, Math.floor((new Date(end || Date.now()) - new Date(start)) / 60000));
@@ -20,7 +20,7 @@ const screenRows = rows => [...rows].sort((a,b) => String(b.createdAt || "").loc
   '<article class="list-row"><div class="list-main"><div class="list-title">' + escapeHtml(item.sheetName) + ' · ' + escapeHtml(item.operatorName || "—") +
   '</div><div class="list-meta">' + escapeHtml(item.date ? thaiDate(item.date) : "—") + ' · แพ็ค ' + escapeHtml(item.enteredPack ?? "—") +
   ' · เสียจากสกรีน ' + escapeHtml(item.missingBottles ?? "—") + ' · เสียจากผลิต ' + escapeHtml(item.productionDamagedBottles ?? "—") +
-  (item.note ? ' · ' + escapeHtml(item.note) : '') + '</div></div><span class="badge badge-info">mock</span></article>'
+  (item.note ? ' · ' + escapeHtml(item.note) : '') + '</div></div><span class="badge badge-info">บันทึกงาน</span></article>'
 ).join("");
 
 export async function render(root, context) {
@@ -62,21 +62,21 @@ export async function render(root, context) {
         '<div class="field field-full"><label for="workNote">หมายเหตุ</label><textarea id="workNote" name="note" maxlength="300" placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"></textarea></div>' +
         '</div><div class="form-actions"><button class="button button-primary" type="submit">▶️ เริ่มงาน</button></div></form></section>') : '') +
     (screenOnly && !active ? '<div class="section-title"><div><h2>บันทึกยอดสกรีน</h2><p>ใส่ยอดรายวันแยกจากปุ่มเริ่ม–จบงาน</p></div></div>' +
-      '<div class="grid grid-3 attendance-section">' + statCard("จำนวนแพ็ค", String(screenTotals.packs), "ยอดสะสม mock") +
-      statCard("เสียจากสกรีน", String(screenTotals.screenDefects), "ยอดสะสม mock") +
-      statCard("เสียจากผลิต", String(screenTotals.productionDefects), "ยอดสะสม mock") + '</div>' +
+      '<div class="grid grid-3 attendance-section">' + statCard("จำนวนแพ็ค", String(screenTotals.packs), "ยอดสะสมตามสิทธิ์") +
+      statCard("เสียจากสกรีน", String(screenTotals.screenDefects), "ยอดสะสมตามสิทธิ์") +
+      statCard("เสียจากผลิต", String(screenTotals.productionDefects), "ยอดสะสมตามสิทธิ์") + '</div>' +
       '<section class="card form-card" style="margin-top:.8rem"><h2>บันทึกข้อมูลสกรีน</h2><form id="screen-entry-form" style="margin-top:.8rem"><div class="form-grid">' +
       '<div class="field"><label for="screen-date">วันที่</label><input id="screen-date" name="date" type="date" value="' + escapeHtml(bangkokToday()) + '" readonly required></div>' +
       '<div class="field"><label for="screen-machine">เครื่องจักร</label><select id="screen-machine" name="sheetName" required><option value="">เลือกเครื่อง</option>' + screenMachines.map(machine => '<option value="' + escapeHtml(machine) + '">' + escapeHtml(machine) + '</option>').join("") + '</select></div>' +
       '<div class="field"><label for="screen-packs">จำนวนแพ็คที่ได้ของวันนี้</label><input id="screen-packs" name="enteredPack" type="number" min="0" step="any" inputmode="decimal" placeholder="เว้นว่างถ้าไม่บันทึก"></div>' +
       '<div class="field"><label for="screen-defects">จำนวนเสียจากสกรีน</label><input id="screen-defects" name="missingBottles" type="number" min="0" step="any" inputmode="decimal" placeholder="เว้นว่างถ้าไม่บันทึก"></div>' +
       '<div class="field"><label for="production-defects">จำนวนเสียจากผลิต</label><input id="production-defects" name="productionDamagedBottles" type="number" min="0" step="any" inputmode="decimal" placeholder="เว้นว่างถ้าไม่บันทึก"></div>' +
-      '<div class="field"><label for="screen-operator">ผู้บันทึก</label><input id="screen-operator" name="operatorName" value="' + escapeHtml(context.user.name) + '" readonly required><p class="small-muted">ยืนยันจากบัญชีจำลอง</p></div>' +
+      '<div class="field"><label for="screen-operator">ผู้บันทึก</label><input id="screen-operator" name="operatorName" value="' + escapeHtml(context.user.name) + '" readonly required><p class="small-muted">ยืนยันจากบัญชีที่เข้าสู่ระบบ</p></div>' +
       '<div class="field field-full"><label for="screen-note">หมายเหตุ</label><textarea id="screen-note" name="note" maxlength="500" placeholder="กรอกหมายเหตุ (ถ้ามี)"></textarea></div>' +
       '</div><div class="form-actions"><button class="button button-primary" type="submit">บันทึกข้อมูลสกรีน</button></div></form></section>' +
       '<section class="card card-pad" style="margin-top:.8rem"><div class="section-title"><div><h2>รายการสกรีนล่าสุด</h2><p>แสดงสูงสุด 8 รายการ</p></div></div><div class="list">' + (screenEntries.length ? screenRows(screenEntries) : '<div class="empty-state">ยังไม่มีข้อมูลสกรีน</div>') + '</div></section>' : '') +
     (productionOnly && !active ? '<div data-production-record></div>' : '') +
-    '<div class="section-title"><div><h2>ประวัติงาน</h2><p>รายการ mock ในอุปกรณ์นี้</p></div></div>' +
+    '<div class="section-title"><div><h2>ประวัติงาน</h2><p>ประวัติงานตามสิทธิ์บัญชี</p></div></div>' +
     '<section class="card card-pad"><div class="list">' + (rows.length ? rows.map(item =>
       '<article class="list-row"><div class="list-main"><div class="list-title">' + escapeHtml(item.machine) + " · " + escapeHtml(item.workType) +
       '</div><div class="list-meta">' + escapeHtml(item.employee || "พนักงานตัวอย่าง") + " · " + escapeHtml(item.orderName || "ไม่มีชื่อออเดอร์") + " · " + escapeHtml(shortTime(item.startedAt)) +

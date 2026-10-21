@@ -1,6 +1,6 @@
-import * as api from '../../adapters/package06.js';
-import { statCard } from '../../components/app-card.js';
-import { escapeHtml as e } from '../../js/utils.js';
+import * as api from '../../adapters/package06.js?v=1.3.184';
+import { statCard } from '../../components/app-card.js?v=1.3.184';
+import { escapeHtml as e } from '../../js/utils.js?v=1.3.184';
 
 const periods=[['today','วันนี้'],['week','สัปดาห์นี้'],['month','เดือนนี้']];
 export async function render(root,context){

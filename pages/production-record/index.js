@@ -1,8 +1,8 @@
-import * as api from '../../adapters/package05.js';
-import {isProductionEmployee, PRODUCTION_WORK_MACHINES} from '../../js/permissions.js';
-import {bangkokToday, escapeHtml as e, thaiDate} from '../../js/utils.js';
-import {requireOnlineAction} from '../../js/offline.js';
-import {statCard} from '../../components/app-card.js';
+import * as api from '../../adapters/package05.js?v=1.3.184';
+import {isProductionEmployee, PRODUCTION_WORK_MACHINES} from '../../js/permissions.js?v=1.3.184';
+import {bangkokToday, escapeHtml as e, thaiDate} from '../../js/utils.js?v=1.3.184';
+import {requireOnlineAction} from '../../js/offline.js?v=1.3.184';
+import {statCard} from '../../components/app-card.js?v=1.3.184';
 
 export async function render(root, context, {embedded=false} = {}) {
   if(!embedded && context.user.role==='employee' && context.workspace==='employee' && isProductionEmployee(context.user)){

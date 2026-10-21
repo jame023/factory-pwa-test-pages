@@ -1,6 +1,6 @@
-import { MOCK_STORAGE_KEY, MOCK_USERS } from "./config.js";
-import { normalizeRole, normalizeGroup } from "./permissions.js";
-import { bangkokToday } from "./utils.js";
+import { MOCK_STORAGE_KEY, MOCK_USERS } from "./config.js?v=1.3.184";
+import { normalizeRole, normalizeGroup } from "./permissions.js?v=1.3.184";
+import { bangkokToday } from "./utils.js?v=1.3.184";
 
 const makeInitialState = () => ({
   employees: MOCK_USERS.map(user => ({ ...user, group: "ออฟฟิต", active: true })),

@@ -1,9 +1,9 @@
-import { watchChanges, mockLiveEnabled } from '../../js/live-updates.js';
-import * as calendarApi from "../../adapters/package08.js";
-import { bangkokToday, escapeHtml, thaiDate } from "../../js/utils.js";
-import { canManage } from "../../js/permissions.js";
-import { requireOnlineAction } from "../../js/offline.js";
-import { confirmAction } from "../../components/modal.js";
+import { watchChanges, mockLiveEnabled } from '../../js/live-updates.js?v=1.3.184';
+import * as calendarApi from "../../adapters/package08.js?v=1.3.184";
+import { bangkokToday, escapeHtml, thaiDate } from "../../js/utils.js?v=1.3.184";
+import { canManage } from "../../js/permissions.js?v=1.3.184";
+import { requireOnlineAction } from "../../js/offline.js?v=1.3.184";
+import { confirmAction } from "../../components/modal.js?v=1.3.184";
 
 const statuses = ["เต็มวัน","ครึ่งวัน","หยุด"];
 const dayTone = status => ({"เต็มวัน":"full","ครึ่งวัน":"half","หยุด":"holiday"})[status] || "";

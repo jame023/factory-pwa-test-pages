@@ -1,7 +1,7 @@
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1.3.181';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=1.3.184';
 
-import { RECORD_SCHEMAS, validateRecord } from './record-schema.js?v=1.3.181';
-import { bangkokToday } from './utils.js?v=1.3.181';
+import { RECORD_SCHEMAS, validateRecord } from './record-schema.js?v=1.3.184';
+import { bangkokToday } from './utils.js?v=1.3.184';
 const SESSION_KEY = 'factory-pwa-line-supabase-session-v1';
 function getSupabaseLineAccessToken() { try { const saved=JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null'); return saved?.accessToken && Number.isFinite(saved.expiresAt) && saved.expiresAt>Date.now() ? saved.accessToken : ''; } catch (_) { return ''; } }
 
@@ -57,13 +57,27 @@ function normalizeImages(images) {
       return {name:String(image.name||'รูปแนบ').slice(0,120),mimeType,size:Number(image.size)||bytes,dataUrl:image.dataUrl};
     });
   }
+  async function verifySaved(row) {
+    if (!row?.id) throw fail('ยังยืนยันผลการบันทึกไม่ได้','INCOMPLETE_WRITE');
+    const params = new URLSearchParams({select:'*', id:`eq.${row.id}`, category:`eq.${row.category}`});
+    const [saved] = await call('/rest/v1/factory_records?'+params);
+    if (!saved || saved.updated_at !== row.updated_at || JSON.stringify(saved.payload) !== JSON.stringify(row.payload))
+      throw fail('บันทึกแล้วแต่ตรวจข้อมูลกลับไม่สำเร็จ กรุณาตรวจรายการก่อนบันทึกซ้ำ','INCOMPLETE_WRITE');
+    // The database audit trigger commits atomically with every record mutation.
+    if (claims.app_metadata.role === 'admin') {
+      const audit = new URLSearchParams({select:'id',record_id:`eq.${row.id}`,table_name:`eq.factory_records:${row.category}`,limit:'1'});
+      const logs = await call('/rest/v1/audit_logs?'+audit);
+      if (!logs?.length) throw fail('ยังตรวจสอบประวัติการบันทึกไม่สำเร็จ','INCOMPLETE_AUDIT');
+    }
+    return rowMap(saved);
+  }
   async function insert(category, values, groupName=null, ownerId=null) {
     const id = await userId();
 const normalized = validateRecord(category, values);
     if (category === 'otRequests' || category === 'leaveRequests' || category === 'deliveries') normalized.images = normalizeImages(values.images || values.photos || []);
     const row = { category, owner_id:ownerId || id, group_name:canonical(groupName || GROUP_BY_CATEGORY[category] || null), payload:normalized, created_by:id, updated_by:id };
     const data = await call('/rest/v1/factory_records?select=*',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(row)});
-    return rowMap(data[0]);
+    return verifySaved(data[0]);
   }
   async function update(id, category, values, reason='') {
     const actor = await userId();
@@ -71,12 +85,12 @@ const normalized = validateRecord(category, values);
     const params = new URLSearchParams({id:`eq.${id}`,category:`eq.${category}`,select:'*'});
     const data = await call('/rest/v1/factory_records?'+params,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({payload:validateRecord(category,values),reason:reason.trim(),updated_by:actor,updated_at:new Date().toISOString()})});
     if (!data?.length) throw fail('ไม่พบรายการที่แก้ไข','NOT_FOUND');
-    return rowMap(data[0]);
+    return verifySaved(data[0]);
   }
-  async function action(module, action, p={}) {
+  async function dispatch(module, action, p={}) {
     if (module==='package01' && action==='devices.read') return call('/rest/v1/machines?select=id,machine_code,machine_name,work_group,active,display_order&order=display_order.asc');
     if (module==='package01' && action==='screenManual.read') return rows('screenEntries');
-    if (module==='package01' && action==='screenManual.create') return insert('screenEntries',{...p,operatorName:p.operatorName || (await currentName())});
+    if (module==='package01' && action==='screenManual.create') return insert('screenEntries',{...p,operatorName:await currentName()});
     if (module==='package04' && action==='delivery.list') return rows('deliveries');
     if (module==='package04' && action==='delivery.options') {
       const products=await call('/rest/v1/item_names?select=item_name&active=eq.true&order=item_name.asc');
@@ -87,7 +101,7 @@ const normalized = validateRecord(category, values);
       const actor=await userId(); const raw=await call('/rest/v1/factory_records?select=id,owner_id,group_name,payload,created_at,updated_at&id=eq.'+encodeURIComponent(p.id)+'&category=eq.deliveries');
       const row=raw?.[0]; if(!row || row.payload?.status==='ยกเลิก') throw fail('ไม่พบรายการขนส่งที่ยังยกเลิกได้','NOT_FOUND');
       const next={...row.payload,status:'ยกเลิก',legacyStatus:'UNDONE',undoneAt:new Date().toISOString()};
-      const data=await call('/rest/v1/factory_records?id=eq.'+encodeURIComponent(row.id)+'&category=eq.deliveries&select=*',{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({payload:next,reason:'ยกเลิกรายการขนส่ง',updated_by:actor,updated_at:new Date().toISOString()})}); return rowMap(data[0]);
+      const data=await call('/rest/v1/factory_records?id=eq.'+encodeURIComponent(row.id)+'&category=eq.deliveries&select=*',{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({payload:next,reason:'ยกเลิกรายการขนส่ง',updated_by:actor,updated_at:new Date().toISOString()})}); return verifySaved(data[0]);
     }
     if (module==='package05' && action==='production.list') return rows('production');
     if (module==='package05' && action==='production.create') return insert('production',{...p,operator:await currentName()},'ผลิต');
@@ -110,14 +124,14 @@ const normalized = validateRecord(category, values);
       const row=raw?.[0] ? rowMap(raw[0]) : null; const old=raw?.[0]?.payload; if(!row || old?.status!=='pending') throw fail('ไม่พบคำขอรอพิจารณา','NOT_FOUND');
       if(!['approved','rejected'].includes(p.decision) || (p.decision==='rejected' && !String(p.rejectionReason||'').trim())) throw fail('กรุณาเลือกผลและระบุเหตุผลเมื่อปฏิเสธ','VALIDATION_ERROR');
       const next={...old,status:p.decision,reviewedAt:new Date().toISOString(),reviewedBy:await currentName(),rejectionReason:p.decision==='rejected'?String(p.rejectionReason).trim():''};
-      const data=await call('/rest/v1/factory_records?id=eq.'+encodeURIComponent(row.id)+'&category=eq.leaveRequests&select=*',{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({payload:next,reason:next.rejectionReason||'พิจารณาคำขอลา',updated_by:actor,updated_at:new Date().toISOString()})}); return rowMap(data[0]);
+      const data=await call('/rest/v1/factory_records?id=eq.'+encodeURIComponent(row.id)+'&category=eq.leaveRequests&select=*',{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({payload:next,reason:next.rejectionReason||'พิจารณาคำขอลา',updated_by:actor,updated_at:new Date().toISOString()})}); return verifySaved(data[0]);
     }
     if (module==='package09' && action==='leave.cancel') {
       const actor=await userId(); const raw=await call('/rest/v1/factory_records?select=id,owner_id,group_name,payload,created_at,updated_at&id=eq.'+encodeURIComponent(p.id)+'&category=eq.leaveRequests');
       const row=raw?.[0] ? rowMap(raw[0]) : null; const old=raw?.[0]?.payload; if(!row) throw fail('ไม่พบคำขอลา','NOT_FOUND');
       if(!String(p.reason||'').trim()) throw fail('กรุณาระบุเหตุผลการยกเลิก','VALIDATION_ERROR');
       const next={...old,status:'cancelled',cancelledAt:new Date().toISOString(),cancellationReason:String(p.reason).trim()};
-      const data=await call('/rest/v1/factory_records?id=eq.'+encodeURIComponent(row.id)+'&category=eq.leaveRequests&select=*',{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({payload:next,reason:next.cancellationReason,updated_by:actor,updated_at:new Date().toISOString()})}); return rowMap(data[0]);
+      const data=await call('/rest/v1/factory_records?id=eq.'+encodeURIComponent(row.id)+'&category=eq.leaveRequests&select=*',{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({payload:next,reason:next.cancellationReason,updated_by:actor,updated_at:new Date().toISOString()})}); return verifySaved(data[0]);
     }
     if (module==='package08' && action==='calendar.read') {
       const filters={}; if(p.group) filters.group_name=`eq.${canonical(p.group)}`;
@@ -127,7 +141,7 @@ const normalized = validateRecord(category, values);
       const [existing]=await rows('calendar',{group_name:`eq.${canonical(p.group)}`, 'payload->>date':`eq.${p.date}`});
       return existing ? update(existing.id,'calendar',p,'แก้ไขปฏิทิน') : insert('calendar',p,canonical(p.group));
     }
-    if (module==='package08' && action==='calendar.batch.save') return Promise.all((p.entries||[]).map(entry=>action(module,'calendar.save',entry)));
+    if (module==='package08' && action==='calendar.batch.save') return Promise.all((p.entries||[]).map(entry=>dispatch(module,'calendar.save',entry)));
     if (module==='package08' && action==='calendar.notifications.read') return [];
     if (module==='package09' && ['leave.notifications.read','leave.notices.read'].includes(action)) return [];
     if (module==='package10' && action==='attendance.notifications.read') return [];
@@ -204,7 +218,7 @@ const normalized = validateRecord(category, values);
     const id=await userId(); const data=await call('/rest/v1/employees?select=employee_name&id=eq.'+encodeURIComponent(id));
     if(!data?.[0]?.employee_name) throw fail('ไม่พบบัญชีพนักงานที่ใช้งาน','PERMISSION_DENIED'); return data[0].employee_name;
   }
-  return Object.freeze({ request:action });
+  return Object.freeze({ request:dispatch });
 }
 
 
