@@ -84,7 +84,7 @@ async function renderRoute() {
   onRoute(route);
   if ((APP_MODE === "development" && !READ_ONLY_ROUTES.includes(route)) ||
       (APP_MODE !== "mock" && APP_MODE !== "development" &&
-       !(APP_MODE === "supabase-line" && ["home","attendance","work-session","leave","calendar","delivery","production","production-record","ot","reports"].includes(route)))) {
+       !(APP_MODE === "supabase-line" && ["home","attendance","work-session","leave","calendar","delivery","production","production-record","ot","reports","admin","admin-employees","admin-groups","admin-machines","admin-item-names"].includes(route)))) {
     showActionPopup("หมวดนี้ยังไม่เปิดเชื่อมต่อข้อมูล", { tone: "info", timeout: 2600 });
     pageRoot.innerHTML = '<section class="notice notice-warning"><h1>โมดูลนี้ยังไม่เปิด API</h1><p>โหมดอ่านข้อมูลทดสอบเปิดเฉพาะเวลาของฉัน</p><a class="button" href="#/attendance">เปิดเวลาของฉัน</a></section>';
     loader.hidden = true;
