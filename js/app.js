@@ -1,5 +1,5 @@
 import { startCalendarNotifications } from "./notifications.js?v=1.3.186";
-import { authProvider, clearSupabaseSession, checkSupabaseSession } from "./auth.js?v=1.3.191";
+import { authProvider, clearSupabaseSession, checkSupabaseSession } from "./auth.js?v=1.3.194";
 import { renderAppHeader } from "../components/app-header.js?v=1.3.186";
 import { renderLoginScreen } from "../components/login-screen.js?v=1.3.191";
 import { renderBottomNav } from "../components/bottom-nav.js?v=1.3.186";
