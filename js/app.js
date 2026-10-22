@@ -1,5 +1,5 @@
 import { startCalendarNotifications } from "./notifications.js?v=1.3.186";
-import { authProvider, clearSupabaseSession, checkSupabaseSession } from "./auth.js?v=1.3.194";
+import { authProvider, clearSupabaseSession, checkSupabaseSession } from "./auth.js?v=1.3.198";
 import { renderAppHeader } from "../components/app-header.js?v=1.3.186";
 import { renderLoginScreen } from "../components/login-screen.js?v=1.3.191";
 import { renderBottomNav } from "../components/bottom-nav.js?v=1.3.186";
@@ -48,7 +48,7 @@ async function login(event) {
     session = await authProvider.login();
     if (!session) return; // LIFF may redirect the browser to LINE Login.
     await mountApp();
-    showActionPopup("ยืนยันตัวตนแล้ว กำลังเปิดหน้าของคุณ…", { tone:"success", timeout:1300 });
+    if (!session?.applicant) showActionPopup("ยืนยันตัวตนแล้ว กำลังเปิดหน้าของคุณ…", { tone:"success", timeout:1300 });
   } catch (error) {
     renderLogin(error?.message || "ยืนยันตัวตนไม่สำเร็จ ลองใหม่อีกครั้ง");
     showActionPopup("ยืนยันตัวตนไม่สำเร็จ", { tone:"error", timeout:2600 });
@@ -129,6 +129,14 @@ function watchRealSession() {
 }
 
 async function mountApp() {
+  if (session?.applicant) {
+    headerRoot.replaceChildren(); navRoot.replaceChildren(); loadingRoot.hidden=true;
+    const {mountRegistration}=await import('../pages/registration/index.js?v=1.3.198');
+    await mountRegistration(pageRoot,{logout:signOut});
+    setTimeout(()=>void endRealSession('Session หมดอายุ กรุณายืนยัน LINE ใหม่'),Math.max(0,Date.parse(session.session_expiry)-Date.now()));
+    window.addEventListener('storage',event=>{if(event.key==='factory-pwa-session-signed-out'&&event.newValue==='1')location.reload();});
+    return;
+  }
   if (appMounted) return;
   appMounted = true;
   renderChrome();
@@ -159,7 +167,7 @@ async function start() {
       return;
     }
     await mountApp();
-    showActionPopup("ยืนยันตัวตนแล้ว", { tone:"success", timeout:1000 });
+    if (!session?.applicant) showActionPopup("ยืนยันตัวตนแล้ว", { tone:"success", timeout:1000 });
   } catch (error) {
     renderLogin(error?.message || "ตรวจสอบบัญชีไม่สำเร็จ กรุณาลองใหม่");
     showActionPopup("ตรวจสอบบัญชีไม่สำเร็จ", { tone:"error", timeout:2800 });

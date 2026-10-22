@@ -252,7 +252,6 @@ export class SupabaseLineAuthProvider extends AuthProvider {
   async getSession() { return withSessionLock(() => this.restoreSession()); }
 
   async restoreSession() {
-    // The Admin data module owns this separate PKCE callback; keep it for machine-admin-auth.js.
     const isAdminModuleCallback = new URLSearchParams(location.search).has('code') && /^#\/admin\/(employees|groups|machines|item-names)(?:$|\?)/.test(location.hash);
     const callback = isAdminModuleCallback ? null : await completePkceOAuth({ supabaseUrl:SUPABASE_URL, publishableKey:SUPABASE_PUBLISHABLE_KEY });
     if (callback?.error) {
@@ -294,9 +293,17 @@ export class SupabaseLineAuthProvider extends AuthProvider {
       await clearStoredSession();
       throw new Error("บัญชีถูกระงับการใช้งาน");
     }
-    if (metadata.employee_status === "not_found") {
-      await clearStoredSession();
-      throw new Error("ยังไม่มีบัญชีในระบบ");
+    if (metadata.employee_status === "not_found" && metadata.role === "applicant") {
+      const identity = await supabaseRequest('/rest/v1/rpc/registration_current_identity', {method:'POST',token:saved.accessToken,body:{}});
+      if (!identity?.line_user_id || identity.employee_exists) {
+        await clearStoredSession();
+        throw new Error(identity?.employee_active === false ? 'บัญชีถูกระงับ กรุณาติดต่อ Admin' : 'บัญชีนี้มีอยู่ในระบบแล้ว');
+      }
+      await saveSession(saved);
+      localStorage.removeItem('factory-pwa-session-signed-out');
+      sessionStorage.setItem(SUPABASE_SESSION_KEY, JSON.stringify(saved));
+      return {authenticated:true,applicant:true,provider:'supabase-line',identity,
+        session_expiry:new Date(Number(claims.exp)*1000).toISOString()};
     }
     const role = metadata.role;
     const employeeId = metadata.employee_id;
