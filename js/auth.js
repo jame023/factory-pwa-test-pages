@@ -252,7 +252,9 @@ export class SupabaseLineAuthProvider extends AuthProvider {
   async getSession() { return withSessionLock(() => this.restoreSession()); }
 
   async restoreSession() {
-    const callback = await completePkceOAuth({ supabaseUrl:SUPABASE_URL, publishableKey:SUPABASE_PUBLISHABLE_KEY });
+    // The Admin data module owns this separate PKCE callback; keep it for machine-admin-auth.js.
+    const isAdminModuleCallback = new URLSearchParams(location.search).has('code') && /^#\/admin\/(employees|groups|machines|item-names)(?:$|\?)/.test(location.hash);
+    const callback = isAdminModuleCallback ? null : await completePkceOAuth({ supabaseUrl:SUPABASE_URL, publishableKey:SUPABASE_PUBLISHABLE_KEY });
     if (callback?.error) {
       await clearStoredSession();
       throw authFailure(callback.error);
