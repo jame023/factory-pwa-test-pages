@@ -1,4 +1,4 @@
-const CACHE_NAME = "factory-pwa-shell-v1.3.198";
+const CACHE_NAME = "factory-pwa-shell-v1.3.237-preview";
 const APP_SHELL = [
   "./pages/production-record/index.js",
   "./pages/ot/index.js",
@@ -110,4 +110,7 @@ self.addEventListener("fetch", event => {
 
 
 
+
+
+APP_SHELL.push('./css/ui-system.css?v=1.3.237','./js/ui-icons.js?v=1.3.218','./js/ui-polish.js?v=1.3.218');
 
