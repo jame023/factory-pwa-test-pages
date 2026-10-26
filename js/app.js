@@ -1,19 +1,14 @@
 import { startCalendarNotifications } from "./notifications.js?v=1.3.186";
-import { authProvider, clearSupabaseSession, checkSupabaseSession } from "./auth.js?v=1.3.198";
+import { authProvider, clearSupabaseSession, checkSupabaseSession } from "./auth.js?v=1.3.238";
 import { renderAppHeader } from "../components/app-header.js?v=1.3.186";
 import { renderLoginScreen } from "../components/login-screen.js?v=1.3.191";
 import { renderBottomNav } from "../components/bottom-nav.js?v=1.3.186";
-import { currentRoute, startRouter, refreshRoute } from "./router.js?v=1.3.193";
+import { currentRoute, startRouter, refreshRoute } from "./router.js?v=1.3.238";
 import { subscribeStore } from './state.js?v=1.3.186';
 import { showToast } from "../components/toast.js?v=1.3.186";
 import { registerServiceWorker, setOfflineNotice, watchConnection } from "./offline.js?v=1.3.186";
 import { APP_MODE } from "./config.js?v=1.3.186";
 import { installActionFeedback, showActionPopup } from "../components/action-popup.js?v=1.3.186";
-// Preserve the machine-only OAuth code before the mock app/router can replace the URL.
-const machineOAuthCode = new URLSearchParams(location.search).get('code');
-if (machineOAuthCode && /^#\/admin\/(machines|item-names)(?:$|\?)/.test(location.hash)) {
-  sessionStorage.setItem('factory-pwa-machine-oauth-code-v1', machineOAuthCode);
-}
 
 let session;
 let appMounted = false;

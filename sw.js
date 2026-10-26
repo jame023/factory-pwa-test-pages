@@ -1,4 +1,4 @@
-const CACHE_NAME = "factory-pwa-shell-v1.3.237-preview";
+const CACHE_NAME = "factory-pwa-shell-v1.3.238-preview";
 const APP_SHELL = [
   "./pages/production-record/index.js",
   "./pages/ot/index.js",
@@ -47,6 +47,8 @@ APP_SHELL.push('./js/app.js?v=1.3.195','./js/auth.js?v=1.3.198','./js/registrati
 APP_SHELL.push('./js/app.js?v=1.3.196','./pages/registration/index.js?v=1.3.196','./js/registration-api.js?v=1.3.196');
 APP_SHELL.push('./js/router.js?v=1.3.193');
 APP_SHELL.push('./js/app.js?v=1.3.198','./js/config.js?v=1.3.198','./js/registration-api.js?v=1.3.198','./pages/registration/index.js?v=1.3.198','./css/registration.css?v=1.3.198');
+APP_SHELL.push('./js/app.js?v=1.3.238','./js/auth.js?v=1.3.238','./js/config.js?v=1.3.238','./js/router.js?v=1.3.238','./js/machine-admin-auth.js?v=1.3.238','./js/live-admin-context.js?v=1.3.238','./pages/admin/groups.js?v=1.3.238','./pages/admin/employees.js?v=1.3.238','./pages/admin/machines.js?v=1.3.238','./pages/admin/item-names.js?v=1.3.238');
+APP_SHELL.push('./js/pkce-oauth.js?v=1.3.238');
 const shellUrls = new Set(APP_SHELL.map(asset => new URL(asset, self.location.href).href));
 self.addEventListener("install", event => {
   event.waitUntil((async () => { const cache = await caches.open(CACHE_NAME); const requests = APP_SHELL.map(asset => new Request(new URL(asset, self.location.href), { cache: "reload" })); await cache.addAll(requests); })());

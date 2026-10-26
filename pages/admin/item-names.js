@@ -3,7 +3,7 @@ import { showStatusModal } from '../../components/status-modal.js?v=1.3.186';
 import { confirmAction } from '../../components/modal.js?v=1.3.186';
 import { createSupabaseItemNameRepository } from '../../js/item-name-admin-repository.js?v=1.3.186';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../../js/config.js?v=1.3.186';
-import { getMachineAdminSession, loginToMachineAdmin, logoutFromMachineAdmin } from '../../js/machine-admin-auth.js?v=1.3.186';
+import { getMachineAdminSession } from '../../js/machine-admin-auth.js?v=1.3.238';
 
 const DATE = new Intl.DateTimeFormat('th-TH', { timeZone: 'Asia/Bangkok', dateStyle: 'medium', timeStyle: 'short' });
 const esc = escapeHtml;
@@ -36,30 +36,23 @@ function formMarkup(item = null) {
 
 export async function render(root, context) {
   let session;
-  let keepConnectionModal = false;
-  const connectionModal = showStatusModal({ title: 'กำลังเชื่อมต่อ', message: 'กำลังตรวจสอบสิทธิ์' });
-  try { session = await getMachineAdminSession(); }
-  catch (error) {
-    keepConnectionModal = true;
-    connectionModal.update({ title: 'เชื่อมต่อไม่สำเร็จ', message: messageFor(error), detail: error.message, tone: 'error', close: () => connectionModal.close() });
-    root.innerHTML = '<section class="notice notice-danger"><h1>เข้าสู่ระบบ Supabase ไม่สำเร็จ</h1><p>' + esc(error.message) + '</p><button class="button button-primary" data-login-item>เข้าสู่ระบบด้วย LINE</button></section>';
-    root.querySelector('[data-login-item]')?.addEventListener('click', async event => {
-      const button = event.currentTarget; button.disabled = true;
-      const retryModal = showStatusModal({ title: 'กำลังเชื่อมต่อ', message: 'กำลังยืนยันตัวตนด้วย LINE' });
-      try { await loginToMachineAdmin(); } catch (err) { retryModal.update({ title: 'เชื่อมต่อไม่สำเร็จ', message: messageFor(err), detail: err.message, tone: 'error' }); context.showToast?.(messageFor(err), 'error'); button.disabled = false; setTimeout(() => retryModal.close(), 1200); }
-    });
+  const connectionModal = showStatusModal({ title: 'กำลังเชื่อมต่อ', message: 'กำลังตรวจสอบสิทธิ์จาก Session ของแอป' });
+  try {
+    session = await getMachineAdminSession();
+  } catch (error) {
+    root.innerHTML = '<section class="notice notice-danger"><h1>ตรวจสอบ Session ไม่สำเร็จ</h1><p>' + esc(messageFor(error)) + '</p><button class="button button-primary" type="button" data-retry-session>ตรวจสอบ Session อีกครั้ง</button><a class="button" href="#/admin">กลับหน้า Admin</a></section>';
+    root.querySelector('[data-retry-session]')?.addEventListener('click', () => location.reload());
+    connectionModal.update({ title: 'ตรวจสอบ Session ไม่สำเร็จ', message: messageFor(error), tone: 'error', close: () => connectionModal.close(), retry: () => location.reload() });
     return;
-  } finally { if (!keepConnectionModal && connectionModal.isOpen()) connectionModal.close(); }
+  } finally {
+    if (session && connectionModal.isOpen()) connectionModal.close();
+  }
   if (!session) {
-    root.innerHTML = '<section class="card card-pad"><div class="page-heading"><div><p class="eyebrow">Supabase · Item Names</p><h1>จัดการรายการชื่อ</h1><p>เข้าสู่ระบบ LINE เพื่ออ่านข้อมูลตามสิทธิ์ Supabase RLS</p></div></div><button class="button button-primary" data-login-item>เข้าสู่ระบบด้วย LINE</button></section>';
-    root.querySelector('[data-login-item]')?.addEventListener('click', async event => {
-      const button = event.currentTarget; button.disabled = true;
-      const modal = showStatusModal({ title: 'กำลังเชื่อมต่อ', message: 'กำลังยืนยันตัวตนด้วย LINE' });
-      try { await loginToMachineAdmin(); } catch (error) { modal.update({ title: 'เชื่อมต่อไม่สำเร็จ', message: messageFor(error), detail: error.message, tone: 'error' }); button.disabled = false; context.showToast?.(messageFor(error), 'error'); setTimeout(() => modal.close(), 1200); }
-    });
+    connectionModal.close();
+    root.innerHTML = '<section class="notice notice-warning"><h1>จัดการรายการชื่อ</h1><p>ไม่พบ Session ของแอป กรุณาตรวจสอบสถานะการเข้าสู่ระบบอีกครั้ง</p><button class="button button-primary" type="button" data-retry-session>ตรวจสอบ Session อีกครั้ง</button><a class="button" href="#/admin">กลับหน้า Admin</a></section>';
+    root.querySelector('[data-retry-session]')?.addEventListener('click', () => location.reload());
     return;
   }
-
   const role = session.user.role;
   if (role !== 'admin') {
     root.innerHTML = '<section class="notice notice-danger"><h1>ไม่มีสิทธิ์ดำเนินการ</h1><p>หน้านี้สำหรับ Admin เท่านั้น</p></section>';
@@ -90,7 +83,7 @@ export async function render(root, context) {
     const inactiveCount = rows.length - activeCount;
 
     root.innerHTML = '<section class="item-name-admin">' +
-      '<div class="page-heading"><div><p class="eyebrow">Supabase · ' + esc(role === 'admin' ? 'Admin' : role === 'employee' ? 'Employee' : 'Executive') + '</p><h1>จัดการรายการชื่อ</h1><p>จัดการชื่อรายการที่ใช้ร่วมกันในโรงงาน</p><div class="item-account"><span>กำลังจัดการในฐานะ</span><strong>' + esc(session.user.name) + '</strong><span>สิทธิ์กำหนดจากบัญชี Supabase</span></div></div><div class="form-actions">' + (canWrite ? '<a class="button" href="#/admin">ศูนย์ควบคุม Admin</a>' : '') + '<button class="button" type="button" data-item-logout>ออกจากระบบรายการชื่อ</button></div></div>' +
+      '<div class="page-heading"><div><p class="eyebrow">Supabase · ' + esc(role === 'admin' ? 'Admin' : role === 'employee' ? 'Employee' : 'Executive') + '</p><h1>จัดการรายการชื่อ</h1><p>จัดการชื่อรายการที่ใช้ร่วมกันในโรงงาน</p><div class="item-account"><span>กำลังจัดการในฐานะ</span><strong>' + esc(session.user.name) + '</strong><span>สิทธิ์กำหนดจากบัญชี Supabase</span></div></div><div class="form-actions">' + (canWrite ? '<a class="button" href="#/admin">ศูนย์ควบคุม Admin</a>' : '') + '</div></div>' +
       '<section class="item-summary" aria-label="สรุปรายการที่แสดง"><article class="item-summary-card"><span>รายการที่แสดง</span><strong>' + rows.length + '</strong><small>ตามตัวกรองปัจจุบัน</small></article><article class="item-summary-card item-summary-active"><span>ใช้งาน</span><strong>' + activeCount + '</strong><small>พร้อมเลือกใช้</small></article><article class="item-summary-card item-summary-inactive"><span>ปิดใช้งาน</span><strong>' + inactiveCount + '</strong><small>เก็บไว้ดูประวัติ</small></article></section><section class="card card-pad item-toolbar"><div class="section-title"><div><h2>ค้นหารายการ</h2><p>พิมพ์ชื่อบางส่วน แล้วเลือกจากรายการที่แสดงได้เลย</p></div>' + (canWrite ? '<button class="button button-primary" type="button" data-add-item>เพิ่มรายการชื่อ</button>' : '') + '</div>' +
       '<form data-item-filters class="item-filter-grid"><div class="field item-search-field"><label for="item-search">ชื่อรายการ</label><input id="item-search" name="search" maxlength="120" placeholder="พิมพ์ชื่อรายการที่ต้องการค้นหา" value="' + esc(search) + '" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="item-name-suggestions"><div class="item-suggestion-panel" data-item-suggestions hidden><p class="item-suggestion-note" data-item-suggestion-note role="status" aria-live="polite"></p><div id="item-name-suggestions" role="listbox" aria-label="ชื่อรายการที่ตรงกับคำค้น"></div></div></div>' +
       '<div class="field"><label for="item-status-filter">สถานะ</label><select id="item-status-filter" name="status"><option value="all"' + (status === 'all' ? ' selected' : '') + '>ทุกสถานะ</option><option value="active"' + (status === 'active' ? ' selected' : '') + '>ใช้งาน</option><option value="inactive"' + (status === 'inactive' ? ' selected' : '') + '>ปิดใช้งาน</option></select></div>' +
@@ -219,11 +212,6 @@ export async function render(root, context) {
 
   function bind() {
     bindItemSearch();
-    root.querySelector('[data-item-logout]')?.addEventListener('click', async event => {
-      event.currentTarget.disabled = true;
-      try { await logoutFromMachineAdmin(session.accessToken); await render(root, context); }
-      catch (error) { context.showToast?.(error.message, 'error'); event.currentTarget.disabled = false; }
-    });
     root.querySelector('[data-retry-items]')?.addEventListener('click', () => load());
     root.querySelector('[data-add-item]')?.addEventListener('click', () => { editor = {}; details = null; paint(); });
     root.querySelector('[data-item-filters]')?.addEventListener('submit', event => {

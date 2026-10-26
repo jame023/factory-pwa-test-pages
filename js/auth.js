@@ -1,7 +1,7 @@
 import { saveSession, loadSession, deleteSession, withSessionLock } from './session-vault.js?v=1.3.191';
 import { APP_MODE, MOCK_USERS, ROLE_LABELS, MOCK_SESSION_ROLE, MOCK_SESSION_GROUP, LINE_LIFF_ID, API_BASE_URL,
   SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, SUPABASE_LINE_PROVIDER } from "./config.js?v=1.3.186";
-import { startPkceOAuth, completePkceOAuth } from "./pkce-oauth.js?v=1.3.186";
+import { startPkceOAuth, completePkceOAuth } from "./pkce-oauth.js?v=1.3.238";
 
 import { requestReadOnly } from "./read-only-api.js?v=1.3.186";
 import { normalizeRole, normalizeGroup } from "./permissions.js?v=1.3.186";
@@ -227,6 +227,7 @@ export async function checkSupabaseSession() {
 
 export function getSupabaseLineAccessToken() {
   try {
+    if (localStorage.getItem('factory-pwa-session-signed-out') === '1') return '';
     const saved = JSON.parse(sessionStorage.getItem(SUPABASE_SESSION_KEY) || 'null');
     if (!saved?.accessToken || !Number.isFinite(saved.expiresAt) || saved.expiresAt <= Date.now()) return '';
     return saved.accessToken;
@@ -252,8 +253,7 @@ export class SupabaseLineAuthProvider extends AuthProvider {
   async getSession() { return withSessionLock(() => this.restoreSession()); }
 
   async restoreSession() {
-    const isAdminModuleCallback = new URLSearchParams(location.search).has('code') && /^#\/admin\/(employees|groups|machines|item-names)(?:$|\?)/.test(location.hash);
-    const callback = isAdminModuleCallback ? null : await completePkceOAuth({ supabaseUrl:SUPABASE_URL, publishableKey:SUPABASE_PUBLISHABLE_KEY });
+    const callback = await completePkceOAuth({ supabaseUrl:SUPABASE_URL, publishableKey:SUPABASE_PUBLISHABLE_KEY });
     if (callback?.error) {
       await clearStoredSession();
       throw authFailure(callback.error);

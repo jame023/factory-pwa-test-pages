@@ -28,7 +28,7 @@ export async function completePkceOAuth({ supabaseUrl, publishableKey }) {
   const code = params.get('code') || sessionStorage.getItem(callbackCodeKey);
   if (!code && !error) return null;
 
-  if (params.has('code') || error) history.replaceState(null, '', location.pathname);
+  if (params.has('code') || error) history.replaceState(null, '', location.pathname + location.hash);
   sessionStorage.removeItem(callbackCodeKey);
   const verifier = sessionStorage.getItem(VERIFIER_KEY);
   sessionStorage.removeItem(VERIFIER_KEY);
@@ -48,4 +48,5 @@ export async function completePkceOAuth({ supabaseUrl, publishableKey }) {
   return { accessToken: session.access_token, refreshToken: session.refresh_token,
     expiresAt: Date.now() + Number(session.expires_in || 3600) * 1000 };
 }
+
 

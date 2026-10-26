@@ -15,10 +15,10 @@ const routes = {
   ot: () => import("../pages/ot/index.js?v=1.3.186"),
   reports: () => import("../pages/reports/index.js?v=1.3.186"),
   admin: () => import("../pages/admin/index.js?v=1.3.186"),
-  "admin-employees": () => import("../pages/admin/employees.js?v=1.3.186"),
-  "admin-groups": () => import("../pages/admin/groups.js?v=1.3.186"),
-  "admin-machines": () => import("../pages/admin/machines.js?v=1.3.186"),
-  "admin-item-names": () => import("../pages/admin/item-names.js?v=1.3.186")
+  "admin-employees": () => import("../pages/admin/employees.js?v=1.3.238"),
+  "admin-groups": () => import("../pages/admin/groups.js?v=1.3.238"),
+  "admin-machines": () => import("../pages/admin/machines.js?v=1.3.238"),
+  "admin-item-names": () => import("../pages/admin/item-names.js?v=1.3.238")
 };
 routes.employee = routes.home;
 routes.executive = routes.home;

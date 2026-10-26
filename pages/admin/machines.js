@@ -3,7 +3,7 @@ import { showStatusModal } from '../../components/status-modal.js?v=1.3.186';
 import { confirmAction } from '../../components/modal.js?v=1.3.186';
 import { createSupabaseMachineRepository } from '../../js/machine-admin-repository.js?v=1.3.186';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../../js/config.js?v=1.3.186';
-import { getMachineAdminSession, loginToMachineAdmin, logoutFromMachineAdmin } from '../../js/machine-admin-auth.js?v=1.3.186';
+import { getMachineAdminSession } from '../../js/machine-admin-auth.js?v=1.3.238';
 
 const GROUPS = Object.freeze(['สกรีน', 'ผลิต', 'ขนส่ง', 'ออฟฟิศ', 'ผู้บริหาร', 'Admin']);
 const DATE = new Intl.DateTimeFormat('th-TH', { timeZone: 'Asia/Bangkok', dateStyle: 'medium', timeStyle: 'short' });
@@ -56,27 +56,21 @@ function formMarkup(machine = null) {
 
 export async function render(root, context) {
   let machineSession;
-  let keepConnectionModal = false;
-  const connectionModal = showStatusModal({ title: 'กำลังเชื่อมต่อ', message: 'กำลังตรวจสอบสิทธิ์' });
-  try { machineSession = await getMachineAdminSession(); }
-  catch (error) {
-    keepConnectionModal = true;
-    connectionModal.update({ title: 'เชื่อมต่อไม่สำเร็จ', message: messageFor(error), detail: error.message, tone: 'error', close: () => connectionModal.close() });
-    root.innerHTML = '<section class="notice notice-danger"><h1>เข้าสู่ระบบ Supabase ไม่สำเร็จ</h1><p>' + esc(error.message) + '</p><button class="button button-primary" data-machine-login>เข้าสู่ระบบ LINE อีกครั้ง</button></section>';
-    root.querySelector('[data-machine-login]')?.addEventListener('click', async event => {
-      const button = event.currentTarget; button.disabled = true;
-      const retryModal = showStatusModal({ title: 'กำลังเชื่อมต่อ', message: 'กำลังยืนยันตัวตนด้วย LINE' });
-      try { await loginToMachineAdmin(); } catch (err) { retryModal.update({ title: 'เชื่อมต่อไม่สำเร็จ', message: messageFor(err), detail: err.message, tone: 'error' }); context.showToast?.(messageFor(err), 'error'); button.disabled = false; setTimeout(() => retryModal.close(), 1200); }
-    });
+  const connectionModal = showStatusModal({ title: 'กำลังเชื่อมต่อ', message: 'กำลังตรวจสอบสิทธิ์จาก Session ของแอป' });
+  try {
+    machineSession = await getMachineAdminSession();
+  } catch (error) {
+    root.innerHTML = '<section class="notice notice-danger"><h1>ตรวจสอบ Session ไม่สำเร็จ</h1><p>' + esc(messageFor(error)) + '</p><button class="button button-primary" type="button" data-retry-session>ตรวจสอบ Session อีกครั้ง</button><a class="button" href="#/admin">กลับหน้า Admin</a></section>';
+    root.querySelector('[data-retry-session]')?.addEventListener('click', () => location.reload());
+    connectionModal.update({ title: 'ตรวจสอบ Session ไม่สำเร็จ', message: messageFor(error), tone: 'error', close: () => connectionModal.close(), retry: () => location.reload() });
     return;
-  } finally { if (!keepConnectionModal && connectionModal.isOpen()) connectionModal.close(); }
+  } finally {
+    if (machineSession && connectionModal.isOpen()) connectionModal.close();
+  }
   if (!machineSession) {
-    root.innerHTML = '<section class="card card-pad"><p class="eyebrow">Supabase · LINE Login</p><h1>เครื่องจักร</h1><p>เข้าสู่ระบบด้วยบัญชี LINE ที่ผูกกับ Factory PWA เพื่ออ่านหรือจัดการเครื่องจักรตามสิทธิ์จริง</p><button class="button button-primary" data-machine-login>เข้าสู่ระบบด้วย LINE</button></section>';
-    root.querySelector('[data-machine-login]')?.addEventListener('click', async event => {
-      const button = event.currentTarget; button.disabled = true; button.textContent = 'กำลังเชื่อมต่อ LINE…';
-      const modal = showStatusModal({ title: 'กำลังเชื่อมต่อ', message: 'กำลังยืนยันตัวตนด้วย LINE' });
-      try { await loginToMachineAdmin(); } catch (error) { modal.update({ title: 'เชื่อมต่อไม่สำเร็จ', message: messageFor(error), detail: error.message, tone: 'error' }); button.disabled = false; button.textContent = 'เข้าสู่ระบบด้วย LINE'; context.showToast?.(messageFor(error), 'error'); setTimeout(() => modal.close(), 1200); }
-    });
+    connectionModal.close();
+    root.innerHTML = '<section class="notice notice-warning"><h1>เครื่องจักร</h1><p>ไม่พบ Session ของแอป กรุณาตรวจสอบสถานะการเข้าสู่ระบบอีกครั้ง</p><button class="button button-primary" type="button" data-retry-session>ตรวจสอบ Session อีกครั้ง</button><a class="button" href="#/admin">กลับหน้า Admin</a></section>';
+    root.querySelector('[data-retry-session]')?.addEventListener('click', () => location.reload());
     return;
   }
   const user = machineSession.user;
@@ -132,7 +126,7 @@ export async function render(root, context) {
 
   function paint() {
     const visible = filteredRows();
-    root.innerHTML = '<div class="machines-page"><div class="page-heading"><div><p class="eyebrow">ทะเบียนเครื่องจักร · ' + esc(role === 'admin' ? 'ผู้ดูแลระบบ' : role === 'employee' ? 'พนักงาน' : 'ผู้บริหาร') + '</p><h1>เครื่องจักร</h1><p>ค้นหาเครื่องจักร ตรวจสอบสถานะ และดูแลข้อมูลให้เป็นปัจจุบัน</p><p>บัญชี: ' + esc(user.name) + '</p></div><div class="form-actions">' + (canWrite ? '<a class="button" href="#/admin">ศูนย์ควบคุม Admin</a>' : '') + '<button class="button" type="button" data-machine-logout>ออกจากระบบเครื่องจักร</button></div></div>' +
+    root.innerHTML = '<div class="machines-page"><div class="page-heading"><div><p class="eyebrow">ทะเบียนเครื่องจักร · ' + esc(role === 'admin' ? 'ผู้ดูแลระบบ' : role === 'employee' ? 'พนักงาน' : 'ผู้บริหาร') + '</p><h1>เครื่องจักร</h1><p>ค้นหาเครื่องจักร ตรวจสอบสถานะ และดูแลข้อมูลให้เป็นปัจจุบัน</p><p>บัญชี: ' + esc(user.name) + '</p></div><div class="form-actions">' + (canWrite ? '<a class="button" href="#/admin">ศูนย์ควบคุม Admin</a>' : '') + '</div></div>' +
       '<section class="card card-pad machine-toolbar"><div class="section-title"><h2>ค้นหาและกรอง</h2>' + (canWrite ? '<button class="button button-primary" type="button" data-add-machine>เพิ่มเครื่องจักร</button>' : '') + '</div>' +
       '<form data-machine-filters class="form-grid">' +
       '<div class="field"><label for="machine-name-query">ค้นหาชื่อเครื่อง</label><input id="machine-name-query" name="machine_name" value="' + esc(nameQuery) + '" maxlength="100"></div>' +
@@ -185,11 +179,6 @@ export async function render(root, context) {
   }
 
   function bind() {
-    root.querySelector('[data-machine-logout]')?.addEventListener('click', async event => {
-      event.currentTarget.disabled = true;
-      try { await logoutFromMachineAdmin(machineSession.accessToken); await render(root, context); }
-      catch (error) { context.showToast?.(error.message, 'error'); event.currentTarget.disabled = false; }
-    });
     root.querySelector('[data-retry-machines]')?.addEventListener('click', () => load());
     root.querySelector('[data-add-machine]')?.addEventListener('click', () => { editor = {}; details = null; paint(); root.querySelector('[data-machine-editor]')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); root.querySelector('#machine-code')?.focus({ preventScroll: true }); });
     root.querySelector('[data-machine-filters]')?.addEventListener('submit', event => {

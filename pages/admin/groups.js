@@ -1,5 +1,5 @@
 import { escapeHtml } from '../../js/utils.js?v=1.3.186';
-import { getLiveAdminContext, loginToMachineAdmin } from '../../js/live-admin-context.js?v=1.3.186';
+import { getLiveAdminContext } from '../../js/live-admin-context.js?v=1.3.238';
 import { showStatusModal } from '../../components/status-modal.js?v=1.3.186';
 
 const GROUPS = Object.freeze(['ออฟฟิศ', 'สกรีน', 'ผลิต', 'ขนส่ง', 'ผู้บริหาร', 'Admin']);
@@ -18,8 +18,8 @@ function friendlyError(error) {
 }
 
 function loginView(root) {
-  root.innerHTML = '<section class="card card-pad"><p class="eyebrow">Admin · Supabase</p><h1>จัดการสิทธิ์กลุ่มงาน</h1><p>หน้านี้ไม่ใช้ข้อมูลจำลอง ต้องยืนยันตัวตน Admin ผ่าน Supabase ก่อน</p><button class="button button-primary" type="button" data-live-login>เข้าสู่ระบบ Admin จริง</button></section>';
-  root.querySelector('[data-live-login]').addEventListener('click', () => void loginToMachineAdmin());
+  root.innerHTML = '<section class="card card-pad"><p class="eyebrow">Admin · Supabase</p><h1>จัดการสิทธิ์กลุ่มงาน</h1><p>ไม่พบ Session ของแอป กรุณาตรวจสอบสถานะการเข้าสู่ระบบอีกครั้ง</p><button class="button button-primary" type="button" data-live-login>ตรวจสอบ Session อีกครั้ง</button></section>';
+  root.querySelector('[data-live-login]').addEventListener('click', () => location.reload());
 }
 
 export async function render(root) {
